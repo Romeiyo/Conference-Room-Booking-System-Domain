@@ -1,4 +1,7 @@
 ﻿
+List<ConferenceRoom> availableRooms = Rooms.GetAvailableRooms.Where(r => r.IsAvailable).ToList();
+List<ConferenceRoom> unavailableRooms = Rooms.GetAvailableRooms.Where(r => !r.IsAvailable).ToList();
+
 bool loggedIn = true;
 
 while (loggedIn)
@@ -18,10 +21,24 @@ while (loggedIn)
     switch (input)
     {
         case "1":
-            Console.WriteLine("Action performed.");
+            Console.WriteLine();
+            Console.WriteLine("Available Conference Rooms:");
+            Console.WriteLine("---------------------------");
+            foreach (var room in availableRooms)
+            {
+                Console.WriteLine($"ID: {room.Id}, Name: {room.Name}, Capacity: {room.Capacity}");
+            }
+            Console.WriteLine();
             break;
         case "2":
-            Console.WriteLine("Action performed.");
+            Console.WriteLine();
+            Console.WriteLine("Unavailable Conference Rooms:");
+            Console.WriteLine("-----------------------------");
+            foreach (var room in unavailableRooms)
+            {
+                Console.WriteLine($"ID: {room.Id}, Name: {room.Name}, Capacity: {room.Capacity}");
+            }
+            Console.WriteLine();
             break;
         case "3":
             Console.WriteLine("Action performed.");
@@ -29,11 +46,12 @@ while (loggedIn)
         case "4":
             loggedIn = false;
             Console.WriteLine("You have been logged out.");
+            Console.WriteLine("Goodbye!");
             break;
         default:
             Console.WriteLine("Invalid option. Please try again.");
             break;
     }
 
-    Console.WriteLine("Goodbye!");
+    
 }

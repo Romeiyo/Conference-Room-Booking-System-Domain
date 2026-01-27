@@ -1,6 +1,7 @@
 ﻿
-List<ConferenceRoom> availableRooms = Rooms.GetAvailableRooms.Where(r => r.IsAvailable).ToList();
-List<ConferenceRoom> unavailableRooms = Rooms.GetAvailableRooms.Where(r => !r.IsAvailable).ToList();
+List<ConferenceRoom> availableRooms = Rooms.ConferenceRooms.Where(r => r.IsAvailable).ToList();
+List<ConferenceRoom> unavailableRooms = Rooms.ConferenceRooms.Where(r => !r.IsAvailable).ToList();
+List<Booking> bookings = new List<Booking>();
 
 bool loggedIn = true;
 
@@ -12,9 +13,11 @@ while (loggedIn)
     Console.WriteLine("1. List Available Conference Rooms");
     Console.WriteLine("2. List Unavailable Conference Rooms");
     Console.WriteLine("3. Book a Conference Room");
-    Console.WriteLine("4. Logout");
+    Console.WriteLine("4. Show All Bookings");
+    Console.WriteLine("5. Cancel Booking");
+    Console.WriteLine("6. Logout");
     Console.WriteLine("---------------------------------------");
-    Console.Write("Please select an option (1-4): ");
+    Console.Write("Please select an option (1-6): ");
 
     string input = Console.ReadLine();
 
@@ -41,9 +44,19 @@ while (loggedIn)
             Console.WriteLine();
             break;
         case "3":
-            Console.WriteLine("Action performed.");
+            CreateBooking.BookConferenceRoom(availableRooms, unavailableRooms, bookings);
             break;
         case "4":
+            CreateBooking.ShowAllBookings(bookings);
+            Console.Write("\nPress any key to continue...");
+            Console.ReadKey();
+            break;
+        case "5":
+            CreateBooking.CancelBooking(availableRooms, unavailableRooms, bookings);
+            Console.Write("\nPress any key to continue...");
+            Console.ReadKey();
+            break;
+        case "6":
             loggedIn = false;
             Console.WriteLine("You have been logged out.");
             Console.WriteLine("Goodbye!");

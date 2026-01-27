@@ -1,5 +1,5 @@
 public static class Rooms{
-    public static List<ConferenceRoom> GetAvailableRooms {get; } = new List<ConferenceRoom>
+    public static List<ConferenceRoom> ConferenceRooms {get; } = new List<ConferenceRoom>
     {
         new ConferenceRoom { Id = 1, Name = "Room A", Capacity = 10, IsAvailable = true },
         new ConferenceRoom { Id = 2, Name = "Room B", Capacity = 20, IsAvailable = true },

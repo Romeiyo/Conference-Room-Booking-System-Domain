@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-public static class CreateBooking
+public static class BookingFunction
 {
     public static void BookConferenceRoom(
         List<ConferenceRoom> availableRooms,

@@ -44,15 +44,15 @@ while (loggedIn)
             Console.WriteLine();
             break;
         case "3":
-            CreateBooking.BookConferenceRoom(availableRooms, unavailableRooms, bookings);
+            BookingFunction.BookConferenceRoom(availableRooms, unavailableRooms, bookings);
             break;
         case "4":
-            CreateBooking.ShowAllBookings(bookings);
+            BookingFunction.ShowAllBookings(bookings);
             Console.Write("\nPress any key to continue...");
             Console.ReadKey();
             break;
         case "5":
-            CreateBooking.CancelBooking(availableRooms, unavailableRooms, bookings);
+            BookingFunction.CancelBooking(availableRooms, unavailableRooms, bookings);
             Console.Write("\nPress any key to continue...");
             Console.ReadKey();
             break;

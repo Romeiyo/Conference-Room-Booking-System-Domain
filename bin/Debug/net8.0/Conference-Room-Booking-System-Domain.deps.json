@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "Conference-Room-Booking-System-Domain/1.0.0": {
+        "runtime": {
+          "Conference-Room-Booking-System-Domain.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Conference-Room-Booking-System-Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

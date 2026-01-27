@@ -1,0 +1,15 @@
+C:\Users\romeo\Conference-Room-Booking-System-Domain\bin\Debug\net8.0\Conference-Room-Booking-System-Domain.exe
+C:\Users\romeo\Conference-Room-Booking-System-Domain\bin\Debug\net8.0\Conference-Room-Booking-System-Domain.deps.json
+C:\Users\romeo\Conference-Room-Booking-System-Domain\bin\Debug\net8.0\Conference-Room-Booking-System-Domain.runtimeconfig.json
+C:\Users\romeo\Conference-Room-Booking-System-Domain\bin\Debug\net8.0\Conference-Room-Booking-System-Domain.dll
+C:\Users\romeo\Conference-Room-Booking-System-Domain\bin\Debug\net8.0\Conference-Room-Booking-System-Domain.pdb
+C:\Users\romeo\Conference-Room-Booking-System-Domain\obj\Debug\net8.0\Conference-Room-Booking-System-Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\romeo\Conference-Room-Booking-System-Domain\obj\Debug\net8.0\Conference-Room-Booking-System-Domain.AssemblyInfoInputs.cache
+C:\Users\romeo\Conference-Room-Booking-System-Domain\obj\Debug\net8.0\Conference-Room-Booking-System-Domain.AssemblyInfo.cs
+C:\Users\romeo\Conference-Room-Booking-System-Domain\obj\Debug\net8.0\Conference-Room-Booking-System-Domain.csproj.CoreCompileInputs.cache
+C:\Users\romeo\Conference-Room-Booking-System-Domain\obj\Debug\net8.0\Conference-Room-Booking-System-Domain.sourcelink.json
+C:\Users\romeo\Conference-Room-Booking-System-Domain\obj\Debug\net8.0\Conference-Room-Booking-System-Domain.dll
+C:\Users\romeo\Conference-Room-Booking-System-Domain\obj\Debug\net8.0\refint\Conference-Room-Booking-System-Domain.dll
+C:\Users\romeo\Conference-Room-Booking-System-Domain\obj\Debug\net8.0\Conference-Room-Booking-System-Domain.pdb
+C:\Users\romeo\Conference-Room-Booking-System-Domain\obj\Debug\net8.0\Conference-Room-Booking-System-Domain.genruntimeconfig.cache
+C:\Users\romeo\Conference-Room-Booking-System-Domain\obj\Debug\net8.0\ref\Conference-Room-Booking-System-Domain.dll

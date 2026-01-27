@@ -1,3 +1,5 @@
+using System;
+
 public class ConferenceRoom
 {
     public int Id { get; set; }

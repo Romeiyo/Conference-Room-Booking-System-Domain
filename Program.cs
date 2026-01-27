@@ -1,4 +1,7 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
 List<ConferenceRoom> availableRooms = Rooms.ConferenceRooms.Where(r => r.IsAvailable).ToList();
 List<ConferenceRoom> unavailableRooms = Rooms.ConferenceRooms.Where(r => !r.IsAvailable).ToList();
 List<Booking> bookings = new List<Booking>();

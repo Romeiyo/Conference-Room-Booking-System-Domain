@@ -71,7 +71,7 @@ public static class BookingFunction
         bool hasOverlap = false;
         foreach (var booking in bookings)
         {
-            if (booking.roomId == roomId)
+            if (booking.RoomId == roomId)
             {
                 if ((startTime >= booking.StartTime && startTime < booking.EndTime) ||
                     (endTime > booking.StartTime && endTime <= booking.EndTime) ||
@@ -89,13 +89,15 @@ public static class BookingFunction
             return;
         }
             
-        var bookingRecord = new Booking
-        {
-            roomId = roomId,
-            userId = userId,
-            StartTime = startTime,
-            EndTime = endTime
-        };
+        // var bookingRecord = new Booking
+        // {
+        //     RoomId = roomId,
+        //     UserId = userId,
+        //     StartTime = startTime,
+        //     EndTime = endTime
+        // };
+        var bookingRecord = new Booking(roomId, userId, startTime, endTime);
+        bookings.Add(bookingRecord);
             
         bookings.Add(bookingRecord);
             
@@ -137,15 +139,15 @@ public static class BookingFunction
             string roomName = "Unknown Room";
             foreach (var room in Rooms.ConferenceRooms)
             {
-                if (room.Id == booking.roomId)
+                if (room.Id == booking.RoomId)
                 {
                     roomName = room.Name;
                     break;
                 }
             }
             
-            Console.WriteLine($"Room: {roomName} (ID: {booking.roomId})");
-            Console.WriteLine($"User: {booking.userId}, From: {booking.StartTime:yyyy-MM-dd HH:mm} To: {booking.EndTime:yyyy-MM-dd HH:mm}");
+            Console.WriteLine($"Room: {roomName} (ID: {booking.RoomId})");
+            Console.WriteLine($"User: {booking.UserId}, From: {booking.StartTime:yyyy-MM-dd HH:mm} To: {booking.EndTime:yyyy-MM-dd HH:mm}");
             Console.WriteLine("---");
         }
     }
@@ -170,7 +172,7 @@ public static class BookingFunction
         for (int i = 0; i < bookings.Count; i++)
         {
             var booking = bookings[i];
-            Console.WriteLine($"{i}\t{booking.roomId}\t{booking.userId}\t{booking.StartTime:yyyy-MM-dd HH:mm}\t{booking.EndTime:yyyy-MM-dd HH:mm}");
+            Console.WriteLine($"{i}\t{booking.RoomId}\t{booking.UserId}\t{booking.StartTime:yyyy-MM-dd HH:mm}\t{booking.EndTime:yyyy-MM-dd HH:mm}");
         }
         
         Console.Write("\nEnter the index of the booking to cancel (or -1 to cancel): ");
@@ -186,7 +188,7 @@ public static class BookingFunction
         
         bookings.RemoveAt(index);
         
-        var roomToUpdate = unavailableRooms.FirstOrDefault(r => r.Id == bookingToCancel.roomId);
+        var roomToUpdate = unavailableRooms.FirstOrDefault(r => r.Id == bookingToCancel.RoomId);
         if (roomToUpdate != null)
         {
             roomToUpdate.IsAvailable = true;
@@ -195,7 +197,7 @@ public static class BookingFunction
             
             foreach (var room in Rooms.ConferenceRooms)
             {
-                if (room.Id == bookingToCancel.roomId)
+                if (room.Id == bookingToCancel.RoomId)
                 {
                     room.IsAvailable = true;
                     break;
@@ -203,6 +205,6 @@ public static class BookingFunction
             }
         }
         
-        Console.WriteLine($"\n Booking cancelled successfully for Room ID: {bookingToCancel.roomId}");
+        Console.WriteLine($"\n Booking cancelled successfully for Room ID: {bookingToCancel.RoomId}");
     }
 }

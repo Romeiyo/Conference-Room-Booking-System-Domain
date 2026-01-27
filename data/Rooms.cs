@@ -1,21 +1,24 @@
+using System;
+using System.Collections.Generic;
+
 public static class Rooms{
     public static List<ConferenceRoom> ConferenceRooms {get; } = new List<ConferenceRoom>
     {
-        new ConferenceRoom { Id = 1, Name = "Room A", Capacity = 10, IsAvailable = true },
-        new ConferenceRoom { Id = 2, Name = "Room B", Capacity = 20, IsAvailable = true },
-        new ConferenceRoom { Id = 3, Name = "Room C", Capacity = 15, IsAvailable = false },
-        new ConferenceRoom { Id = 4, Name = "Room D", Capacity = 25, IsAvailable = true },
-        new ConferenceRoom { Id = 5, Name = "Room E", Capacity = 30, IsAvailable = false },
-        new ConferenceRoom { Id = 6, Name = "Room F", Capacity = 10, IsAvailable = false },
-        new ConferenceRoom { Id = 7, Name = "Room G", Capacity = 20, IsAvailable = true },
-        new ConferenceRoom { Id = 8, Name = "Room H", Capacity = 15, IsAvailable = true },
-        new ConferenceRoom { Id = 9, Name = "Room I", Capacity = 13, IsAvailable = true },
-        new ConferenceRoom { Id = 10, Name = "Room J", Capacity = 20, IsAvailable = true },
-        new ConferenceRoom { Id = 11, Name = "Room K", Capacity = 10, IsAvailable = false },
-        new ConferenceRoom { Id = 12, Name = "Room L", Capacity = 5, IsAvailable = false },
-        new ConferenceRoom { Id = 13, Name = "Room M", Capacity = 12, IsAvailable = true },
-        new ConferenceRoom { Id = 14, Name = "Room N", Capacity = 15, IsAvailable = false },
-        new ConferenceRoom { Id = 15, Name = "Room O", Capacity = 12, IsAvailable = true },
-        new ConferenceRoom { Id = 16, Name = "Room P", Capacity = 30, IsAvailable = false },
+        new ConferenceRoom (1, "Room A", 10, true),
+        new ConferenceRoom (2, "Room B", 20, true),
+        new ConferenceRoom (3, "Room C", 15, false),
+        new ConferenceRoom (4, "Room D", 25, true),
+        new ConferenceRoom (5, "Room E", 30, false),
+        new ConferenceRoom (6, "Room F", 10, false),
+        new ConferenceRoom (7, "Room G", 20, true),
+        new ConferenceRoom (8, "Room H", 15, true),
+        new ConferenceRoom (9, "Room I", 13, true),
+        new ConferenceRoom (10, "Room J", 20, true),
+        new ConferenceRoom (11, "Room K", 10, false),
+        new ConferenceRoom (12, "Room L", 5, false),
+        new ConferenceRoom (13, "Room M", 12, true),
+        new ConferenceRoom (14, "Room N", 15, false),
+        new ConferenceRoom (15, "Room O", 12, true),
+        new ConferenceRoom (16, "Room P", 30, false),
     };
 }

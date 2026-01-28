@@ -1,28 +1,70 @@
-# Conference-Room-Booking-System-Domain
-## Project Overview
-This is a domain model implementation for a Conference Room Booking System using C#. The project focuses on modelling core business concepts and rules that will later power a Conference Room Booking System API.
+# 🏢 Conference-Room-Booking-System-Domain
 
-## Assignment Requirements
-This project was developed as part of a domain modelling assignment with the following requirements:
+This is a domain model implementation for a Conference Room Booking System using C#. The project focuses on modelling core business concepts and rules that will later power a Conference Room Booking System API. The Project has been further expanded upon to include Booking functionalities using mock data.
 
-- Design a clean, intentional domain model using C#
-- Represent core concepts of a Conference Room Booking System
-- Include appropriate C# constructs (class, record, enum) based on intent
-- Use constructors to enforce valid object state
-- Avoid public fields; use properties intentionally
-- Encapsulate behaviour inside domain objects where appropriate
-- Prevent invalid states through enums or logic
-- Use meaningful names that reflect business language
+---
 
-## Domain Model Components
-## Core Domain Classes
-ConferenceRoom Class
-Represents a conference room with the following properties:
+## 📌 Purpose of this Repository
 
-- Id: Unique identifier (positive integer)
-- Name: Room name (required, non-empty)
-- Capacity: Room capacity (positive integer)
-- IsAvailable: Availability status
+This repository is used for:
+- Gradually improving project code over time
+- Created the Conference booking domain
+- Using lists and LINQ to manage booking data
+
+---
+
+## Table of Contents
+- [Repository Contents](#-repository-contents)
+- [Installation](#️-installation)
+- [Usage](#-usage)
+- [Contributing](#-contributing)
+- [System Context](#system-context)
+- [License](#license)
+- [Author](#author)
+
+---
+
+## 🗂 Repository Contents
+
+- [README file](README.md) - Project Overview.
+- [Mock Data](data/Rooms.cs) - Mock data to use for booking rooms.
+- [Enums](enums/Enums.cs) - Project enums.
+- [Methods](methods/BookingFunction.cs) - Project methods.
+- [Models](models/) - Project Classes.
+
+---
+
+## ⚙️ Installation
+
+- Ensure you have .NET SDK [installed(install here)](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+- Copy the HTTPS link
+- Clone the repository using `git clone [Project HTTPS link]`
+- Navigate to the project directory
+- Run: dotnet run
+
+---
+
+## 🚀 Usage
+
+This repository is currently used for:
+1. Creating project domain
+2. Working with collections
+
+---
+
+## 🤝 Contributing
+
+Changes to this repository are made using **Pull Requests**.
+
+Contributors should:
+- Fork the repository
+- Create a feature or documentation branch
+- Submit changes via a Pull Request
+- Clearly describe the intent of the change
+
+---
+
+## System Context
 
 ### Key Features:
 
@@ -30,21 +72,15 @@ Represents a conference room with the following properties:
 - Domain methods: BookRoom() and ReleaseRoom() for managing availability
 - Encapsulated business logic for room management
 
-## Booking Class
+### Booking Class
 ### Represents a room booking with the following properties:
 
-- RoomId: Reference to booked room (positive integer)
+- Room: Reference to booked room (positive integer)
 - UserId: User making the booking (positive integer)
 - StartTime: Booking start time
 - EndTime: Booking end time (must be after start time)
 
-## Key Features:
-
-- Constructor with comprehensive validation
-- Business method: OverlapsWith() for checking booking conflicts
-- Enforces that end time must be after start time
-
-## Supporting Classes
+### Supporting Classes
 ### Rooms Static Class
 - Provides a static collection of ConferenceRoom objects
 - Pre-populated with 16 sample conference rooms
@@ -55,20 +91,14 @@ Represents a conference room with the following properties:
 - Methods for booking rooms, showing bookings, and cancelling bookings
 - Handles user input and console interactions
 
-## Constructor Validation
+### Constructor Validation
 Both domain classes use constructors to enforce valid state:
 
 - Prevents creation of objects with invalid data
 - Throws meaningful exceptions for validation failures
 - Ensures domain invariants are maintained
 
-## Property Design
-- All properties use getters and setters intentionally
-- No public fields - encapsulation is maintained
-- Properties reflect business terminology
-
-
-## Separation of Concerns
+### Separation of Concerns
 - Domain logic is encapsulated in domain objects
 - UI/Console logic is separated in BookingFunction class
 - Data persistence is abstracted in Rooms class
@@ -87,7 +117,7 @@ Both domain classes use constructors to enforce valid state:
 - Cannot book an unavailable room
 - Cancelled bookings free up room availability
 
-## Console Application Features
+### Console Application Features
 The supporting console application provides:
 
 - List Available Rooms: View all currently available conference rooms
@@ -101,11 +131,11 @@ Validation
 - Business rule validation in domain constructors
 - Overlap checking for booking conflicts
 
-## How to Run
-- Ensure you have .NET SDK installed
-- Clone the repository
-- Navigate to the project directory
-- Run: dotnet run
+---
+
+## License
+This project is [LICENSED](LICENSE) under the MIT License.
 
 ## Author
-- Email: romeopomeo1@gmail.com
+Tumisang (Romio) Lesimola: romeopomeo1@gmail.com  
+Created as part of professional software development training.

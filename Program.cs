@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ConferenceRoomBookingSystem.Enums;
+using ConferenceRoomBookingSystem.Models;
 
-List<ConferenceRoom> availableRooms = Rooms.ConferenceRooms.Where(r => r.IsAvailable).ToList();
-List<ConferenceRoom> unavailableRooms = Rooms.ConferenceRooms.Where(r => !r.IsAvailable).ToList();
+List<ConferenceRoomBookingSystem.Models.ConferenceRoom> availableRooms = Rooms.ConferenceRooms.Where(r => r.IsAvailable).ToList();
+List<ConferenceRoomBookingSystem.Models.ConferenceRoom> unavailableRooms = Rooms.ConferenceRooms.Where(r => !r.IsAvailable).ToList();
 List<Booking> bookings = new List<Booking>();
 
 bool loggedIn = true;
@@ -32,7 +34,7 @@ while (loggedIn)
             Console.WriteLine("---------------------------");
             foreach (var room in availableRooms)
             {
-                Console.WriteLine($"ID: {room.Id}, Name: {room.Name}, Capacity: {room.Capacity}");
+                Console.WriteLine($"ID: {room.Id}, Name: {room.Name}, Type: {room.Type}, Capacity: {room.Capacity}");
             }
             Console.WriteLine();
             break;
@@ -42,24 +44,28 @@ while (loggedIn)
             Console.WriteLine("-----------------------------");
             foreach (var room in unavailableRooms)
             {
-                Console.WriteLine($"ID: {room.Id}, Name: {room.Name}, Capacity: {room.Capacity}");
+                Console.WriteLine($"ID: {room.Id}, Name: {room.Name}, Type: {room.Type}, Capacity: {room.Capacity}");
             }
             Console.WriteLine();
             break;
         case "3":
+            Console.WriteLine();
             BookingFunction.BookConferenceRoom(availableRooms, unavailableRooms, bookings);
             break;
         case "4":
+            Console.WriteLine();
             BookingFunction.ShowAllBookings(bookings);
             Console.Write("\nPress any key to continue...");
             Console.ReadKey();
             break;
         case "5":
+            Console.WriteLine();
             BookingFunction.CancelBooking(availableRooms, unavailableRooms, bookings);
             Console.Write("\nPress any key to continue...");
             Console.ReadKey();
             break;
         case "6":
+            Console.WriteLine();
             loggedIn = false;
             Console.WriteLine("You have been logged out.");
             Console.WriteLine("Goodbye!");

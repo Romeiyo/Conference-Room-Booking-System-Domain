@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ConferenceRoomBookingSystem.Enums;
+using ConferenceRoomBookingSystem.Models;
 
 public static class BookingFunction
 {
@@ -9,6 +11,7 @@ public static class BookingFunction
         List<ConferenceRoom> unavailableRooms,
         List<Booking> bookings)
     {
+        Console.WriteLine();
         Console.WriteLine("\n=== Book a Conference Room ===");
            
         Console.WriteLine("\nAvailable Rooms:");
@@ -16,7 +19,7 @@ public static class BookingFunction
         Console.WriteLine("----------------------");
         foreach (var room in availableRooms)
         {
-            Console.WriteLine($"{room.Id}\t{room.Name}\t{room.Capacity}");
+            Console.WriteLine($"{room.Id}\t{room.Name}\t{room.Capacity}\t{room.Type}");
         }
             
         Console.Write("\nEnter Room ID to book (or 0 to cancel): ");
@@ -71,7 +74,7 @@ public static class BookingFunction
         bool hasOverlap = false;
         foreach (var booking in bookings)
         {
-            if (booking.RoomId == roomId)
+            if (booking.Room.Id == roomId)
             {
                 if ((startTime >= booking.StartTime && startTime < booking.EndTime) ||
                     (endTime > booking.StartTime && endTime <= booking.EndTime) ||
@@ -88,17 +91,8 @@ public static class BookingFunction
             Console.WriteLine("This room is already booked during that time. Please choose another time.");
             return;
         }
-            
-        // var bookingRecord = new Booking
-        // {
-        //     RoomId = roomId,
-        //     UserId = userId,
-        //     StartTime = startTime,
-        //     EndTime = endTime
-        // };
-        var bookingRecord = new Booking(roomId, userId, startTime, endTime);
-        bookings.Add(bookingRecord);
-            
+
+        var bookingRecord = new Booking(roomToBook, userId, startTime, endTime);
         bookings.Add(bookingRecord);
             
         foreach (var room in Rooms.ConferenceRooms)
@@ -137,17 +131,19 @@ public static class BookingFunction
         foreach (var booking in bookings)
         {
             string roomName = "Unknown Room";
+            RoomType roomType = RoomType.Standard;
             foreach (var room in Rooms.ConferenceRooms)
             {
-                if (room.Id == booking.RoomId)
+                if (room.Id == booking.Room.Id)
                 {
                     roomName = room.Name;
+                    roomType = room.Type;
                     break;
                 }
             }
-            
-            Console.WriteLine($"Room: {roomName} (ID: {booking.RoomId})");
-            Console.WriteLine($"User: {booking.UserId}, From: {booking.StartTime:yyyy-MM-dd HH:mm} To: {booking.EndTime:yyyy-MM-dd HH:mm}");
+
+            Console.WriteLine($"Room: {booking.Room.Name} Room Type: {booking.Room.Type} (ID: {booking.Room.Id})");
+            Console.WriteLine($"User: {booking.UserId}, From: {booking.StartTime:yyyy-MM-dd HH:mm} To: {booking.EndTime:yyyy-MM-dd HH:mm} Booking Status: {booking.Status}");
             Console.WriteLine("---");
         }
     }
@@ -172,7 +168,7 @@ public static class BookingFunction
         for (int i = 0; i < bookings.Count; i++)
         {
             var booking = bookings[i];
-            Console.WriteLine($"{i}\t{booking.RoomId}\t{booking.UserId}\t{booking.StartTime:yyyy-MM-dd HH:mm}\t{booking.EndTime:yyyy-MM-dd HH:mm}");
+            Console.WriteLine($"{i}\t{booking.Room.Id}\t{booking.UserId}\t{booking.Status}\t{booking.StartTime:yyyy-MM-dd HH:mm}\t{booking.EndTime:yyyy-MM-dd HH:mm}");
         }
         
         Console.Write("\nEnter the index of the booking to cancel (or -1 to cancel): ");
@@ -186,9 +182,9 @@ public static class BookingFunction
         
         var bookingToCancel = bookings[index];
         
-        bookings.RemoveAt(index);
+        bookingToCancel.Status = BookingStatus.Cancelled;
         
-        var roomToUpdate = unavailableRooms.FirstOrDefault(r => r.Id == bookingToCancel.RoomId);
+        var roomToUpdate = unavailableRooms.FirstOrDefault(r => r.Id == bookingToCancel.Room.Id);
         if (roomToUpdate != null)
         {
             roomToUpdate.IsAvailable = true;
@@ -197,7 +193,7 @@ public static class BookingFunction
             
             foreach (var room in Rooms.ConferenceRooms)
             {
-                if (room.Id == bookingToCancel.RoomId)
+                if (room.Id == bookingToCancel.Room.Id)
                 {
                     room.IsAvailable = true;
                     break;
@@ -205,6 +201,7 @@ public static class BookingFunction
             }
         }
         
-        Console.WriteLine($"\n Booking cancelled successfully for Room ID: {bookingToCancel.RoomId}");
+        Console.WriteLine($"\n Booking cancelled successfully for Room ID: {bookingToCancel.Room.Id}");
+        Console.WriteLine($"Status updated to: {bookingToCancel.Status}");
     }
 }

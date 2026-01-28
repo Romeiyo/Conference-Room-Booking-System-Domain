@@ -1,21 +1,34 @@
 using System;
+using ConferenceRoomBookingSystem.Enums;
+using ConferenceRoomBookingSystem.Models;
 
 public class Booking
 {
-    public int RoomId { get; set; }
-    public int UserId { get; set; }
-    public DateTime StartTime { get; set; }
-    public DateTime EndTime { get; set; }
-    public Booking(int roomId, int userId, DateTime startTime, DateTime endTime)
+    public ConferenceRoom Room { get; }
+    public int UserId { get; }
+    public DateTime StartTime { get; set;}
+    public DateTime EndTime { get; set;}
+    public BookingStatus Status { get; set;} = BookingStatus.Booked;
+    public Booking(ConferenceRoom room, int userId, DateTime startTime, DateTime endTime)
     {
-        if (roomId <= 0) throw new ArgumentException("Room ID must be positive");
+        if (room == null) throw new ArgumentException("Room must be a Provided");
         if (userId <= 0) throw new ArgumentException("User ID must be positive");
         if (endTime <= startTime) throw new ArgumentException("End time must be after start time");
         
-        RoomId = roomId;
+        Room = room;
         UserId = userId;
         StartTime = startTime;
         EndTime = endTime;
+        Status = BookingStatus.Booked;
+    }
+
+    public void CancelBooking()
+    {
+        if (Status == BookingStatus.Cancelled)
+            throw new InvalidOperationException("Booking is already cancelled");
+        
+        Status = BookingStatus.Cancelled;
+        Room.ReleaseRoom();
     }
     
     public bool OverlapsWith(DateTime otherStart, DateTime otherEnd)

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ConferenceRoomBookingSystem.Enums;
+using ConferenceRoomBookingSystem.Models;
 
-List<ConferenceRoom> availableRooms = Rooms.ConferenceRooms.Where(r => r.IsAvailable).ToList();
-List<ConferenceRoom> unavailableRooms = Rooms.ConferenceRooms.Where(r => !r.IsAvailable).ToList();
+List<ConferenceRoomBookingSystem.Models.ConferenceRoom> availableRooms = Rooms.ConferenceRooms.Where(r => r.IsAvailable).ToList();
+List<ConferenceRoomBookingSystem.Models.ConferenceRoom> unavailableRooms = Rooms.ConferenceRooms.Where(r => !r.IsAvailable).ToList();
 List<Booking> bookings = new List<Booking>();
 
 bool loggedIn = true;
@@ -32,7 +34,7 @@ while (loggedIn)
             Console.WriteLine("---------------------------");
             foreach (var room in availableRooms)
             {
-                Console.WriteLine($"ID: {room.Id}, Name: {room.Name}, Capacity: {room.Capacity}");
+                Console.WriteLine($"ID: {room.Id}, Name: {room.Name}, Type: {room.Type}, Capacity: {room.Capacity}");
             }
             Console.WriteLine();
             break;
@@ -42,7 +44,7 @@ while (loggedIn)
             Console.WriteLine("-----------------------------");
             foreach (var room in unavailableRooms)
             {
-                Console.WriteLine($"ID: {room.Id}, Name: {room.Name}, Capacity: {room.Capacity}");
+                Console.WriteLine($"ID: {room.Id}, Name: {room.Name}, Type: {room.Type}, Capacity: {room.Capacity}");
             }
             Console.WriteLine();
             break;

@@ -49,19 +49,23 @@ while (loggedIn)
             Console.WriteLine();
             break;
         case "3":
+            Console.WriteLine();
             BookingFunction.BookConferenceRoom(availableRooms, unavailableRooms, bookings);
             break;
         case "4":
+            Console.WriteLine();
             BookingFunction.ShowAllBookings(bookings);
             Console.Write("\nPress any key to continue...");
             Console.ReadKey();
             break;
         case "5":
+            Console.WriteLine();
             BookingFunction.CancelBooking(availableRooms, unavailableRooms, bookings);
             Console.Write("\nPress any key to continue...");
             Console.ReadKey();
             break;
         case "6":
+            Console.WriteLine();
             loggedIn = false;
             Console.WriteLine("You have been logged out.");
             Console.WriteLine("Goodbye!");

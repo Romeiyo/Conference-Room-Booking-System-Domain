@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using ConferenceRoomBookingSystem.Enums;
 using ConferenceRoomBookingSystem.Models;
+using System.Text.Json;
+using System.IO;
+using System.Threading.Tasks;
 
 public static class BookingFunction
 {
@@ -19,7 +22,14 @@ public static class BookingFunction
         Console.WriteLine("----------------------");
         foreach (var room in availableRooms)
         {
-            Console.WriteLine($"{room.Id}\t{room.Name}\t{room.Capacity}\t{room.Type}");
+            if (!room.IsAvailable)
+            {
+                throw new InvalidOperationException("No available rooms to display.");
+            }
+            else
+            {
+                Console.WriteLine($"{room.Id}\t{room.Name}\t{room.Capacity}\t{room.Type}");
+            }
         }
             
         Console.Write("\nEnter Room ID to book (or 0 to cancel): ");
@@ -31,7 +41,7 @@ public static class BookingFunction
             return;
         }
             
-        var roomToBook = availableRooms.FirstOrDefault(r => r.Id == roomId);
+        ConferenceRoom roomToBook = availableRooms.FirstOrDefault(r => r.Id == roomId);
         if (roomToBook == null)
         {
             Console.WriteLine("Invalid Room ID. Please try again.");
@@ -127,25 +137,30 @@ public static class BookingFunction
             Console.WriteLine("No bookings found.");
             return;
         }
-        
-        foreach (var booking in bookings)
+        else
         {
-            string roomName = "Unknown Room";
-            RoomType roomType = RoomType.Standard;
-            foreach (var room in Rooms.ConferenceRooms)
+            foreach (var booking in bookings)
             {
-                if (room.Id == booking.Room.Id)
-                {
-                    roomName = room.Name;
-                    roomType = room.Type;
-                    break;
-                }
-            }
+                string roomName = "Unknown Room";
+                RoomType roomType = RoomType.Standard;
 
-            Console.WriteLine($"Room: {booking.Room.Name} Room Type: {booking.Room.Type} (ID: {booking.Room.Id})");
-            Console.WriteLine($"User: {booking.UserId}, From: {booking.StartTime:yyyy-MM-dd HH:mm} To: {booking.EndTime:yyyy-MM-dd HH:mm} Booking Status: {booking.Status}");
-            Console.WriteLine("---");
+                foreach (var room in Rooms.ConferenceRooms)
+                {
+                    if (room.Id == booking.Room.Id)
+                    {
+                        roomName = room.Name;
+                        roomType = room.Type;
+                        break;
+                    }
+                }
+
+                Console.WriteLine($"Room: {booking.Room.Name} Room Type: {booking.Room.Type} (ID: {booking.Room.Id})");
+                Console.WriteLine($"User: {booking.UserId}, From: {booking.StartTime:yyyy-MM-dd HH:mm} To: {booking.EndTime:yyyy-MM-dd HH:mm} Booking Status: {booking.Status}");
+                Console.WriteLine("---");
+            }
         }
+        
+        
     }
     
     public static void CancelBooking(
@@ -179,7 +194,7 @@ public static class BookingFunction
             Console.WriteLine("Invalid index. Cancellation cancelled.");
             return;
         }
-        
+
         var bookingToCancel = bookings[index];
         
         bookingToCancel.Status = BookingStatus.Cancelled;
@@ -204,4 +219,61 @@ public static class BookingFunction
         Console.WriteLine($"\n Booking cancelled successfully for Room ID: {bookingToCancel.Room.Id}");
         Console.WriteLine($"Status updated to: {bookingToCancel.Status}");
     }
+
+    public static async Task SaveBookingsToFileAsync(List<Booking> bookings, string filePath = "bookings.json")
+    {
+        Console.WriteLine("Saving bookings to file...");
+
+        if (bookings.Count == 0)
+        {
+            Console.WriteLine("No bookings to save.");
+            return;
+        }
+
+        try
+        {
+            string json = JsonSerializer.Serialize(bookings, new JsonSerializerOptions {
+                WriteIndented = true
+            });
+
+            await File.WriteAllTextAsync(filePath, json);
+            Console.WriteLine($"Saved {bookings.Count} bookings successfully to {filePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving bookings: {ex.Message}");
+        }
+    }
+
+    public static async Task<List<Booking>> LoadBookingsFromFileAsync(string filePath = "bookings.json")
+    {
+        Console.WriteLine("Loading bookings from file...");
+
+        if(!File.Exists(filePath))
+        {
+            Console.WriteLine($"File {filePath} does not exist. No bookings loaded.");
+            return new List<Booking>();
+        }
+
+        try
+        {
+            string json = await File.ReadAllTextAsync(filePath);
+
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                Console.WriteLine("No bookings found in file.");
+                return new List<Booking>();
+            }
+
+            var bookings = JsonSerializer.Deserialize<List<Booking>>(json);
+            Console.WriteLine($"Loaded {bookings?.Count ?? 0} bookings successfully from {filePath}");
+            return bookings ?? new List<Booking>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading bookings: {ex.Message}");
+            return new List<Booking>();
+        }
+    }
+
 }

@@ -20,9 +20,11 @@ while (loggedIn)
     Console.WriteLine("3. Book a Conference Room");
     Console.WriteLine("4. Show All Bookings");
     Console.WriteLine("5. Cancel Booking");
-    Console.WriteLine("6. Logout");
+    Console.WriteLine("6. Save Bookings to File");
+    Console.WriteLine("7. Load Bookings from File");
+    Console.WriteLine("8. Logout");
     Console.WriteLine("---------------------------------------");
-    Console.Write("Please select an option (1-6): ");
+    Console.Write("Please select an option (1-8): ");
 
     string input = Console.ReadLine();
 
@@ -65,6 +67,23 @@ while (loggedIn)
             Console.ReadKey();
             break;
         case "6":
+            Console.WriteLine();
+            await BookingFunction.SaveBookingsToFileAsync(bookings);
+            Console.Write("\nPress any key to continue...");
+            Console.ReadKey();
+            break;
+        case "7":
+            Console.WriteLine();
+            var loadedBookings = await BookingFunction.LoadBookingsFromFileAsync();
+            if (loadedBookings.Any())
+            {
+                bookings = loadedBookings;
+                Console.WriteLine("Bookings loaded successfully.");
+            }
+            Console.Write("\nPress any key to continue...");
+            Console.ReadKey();
+            break;
+        case "8":
             Console.WriteLine();
             loggedIn = false;
             Console.WriteLine("You have been logged out.");

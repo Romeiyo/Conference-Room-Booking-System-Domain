@@ -7,9 +7,22 @@
       "IsAvailable": false,
       "Type": 0
     },
-    "UserId": 31635,
-    "StartTime": "2026-10-01T12:00:00",
-    "EndTime": "2026-10-01T13:00:00",
+    "UserId": 52341,
+    "StartTime": "2026-01-29T09:00:00",
+    "EndTime": "2026-01-29T09:30:00",
+    "Status": 0
+  },
+  {
+    "Room": {
+      "Id": 15,
+      "Name": "Room O",
+      "Capacity": 12,
+      "IsAvailable": false,
+      "Type": 0
+    },
+    "UserId": 52341,
+    "StartTime": "2026-01-29T09:00:00",
+    "EndTime": "2026-01-29T09:30:00",
     "Status": 0
   }
 ]

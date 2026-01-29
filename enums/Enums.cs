@@ -2,6 +2,8 @@ namespace ConferenceRoomBookingSystem.Enums
 {
     public enum BookingStatus
     {
+        Pending,
+        Confirmed,
         Booked,
         Cancelled
     }

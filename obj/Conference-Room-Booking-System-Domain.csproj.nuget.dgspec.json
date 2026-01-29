@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\romeo\\Conference-Room-Booking-System-Domain\\Conference-Room-Booking-System-Domain.csproj": {}
+    "C:\\Users\\Training Center 1\\Conference-Room-Booking-System-Domain\\Conference-Room-Booking-System-Domain.csproj": {}
   },
   "projects": {
-    "C:\\Users\\romeo\\Conference-Room-Booking-System-Domain\\Conference-Room-Booking-System-Domain.csproj": {
+    "C:\\Users\\Training Center 1\\Conference-Room-Booking-System-Domain\\Conference-Room-Booking-System-Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\romeo\\Conference-Room-Booking-System-Domain\\Conference-Room-Booking-System-Domain.csproj",
+        "projectUniqueName": "C:\\Users\\Training Center 1\\Conference-Room-Booking-System-Domain\\Conference-Room-Booking-System-Domain.csproj",
         "projectName": "Conference-Room-Booking-System-Domain",
-        "projectPath": "C:\\Users\\romeo\\Conference-Room-Booking-System-Domain\\Conference-Room-Booking-System-Domain.csproj",
-        "packagesPath": "C:\\Users\\romeo\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\romeo\\Conference-Room-Booking-System-Domain\\obj\\",
+        "projectPath": "C:\\Users\\Training Center 1\\Conference-Room-Booking-System-Domain\\Conference-Room-Booking-System-Domain.csproj",
+        "packagesPath": "C:\\Users\\Training Center 1\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Training Center 1\\Conference-Room-Booking-System-Domain\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\romeo\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Training Center 1\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"

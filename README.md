@@ -131,6 +131,10 @@ Validation
 - Business rule validation in domain constructors
 - Overlap checking for booking conflicts
 
+### Serialization & Deserialization
+- Added a Serialization method to download bookings that were made
+- Added a Deserialization method to load bookings from an external json file
+
 ---
 
 ## License

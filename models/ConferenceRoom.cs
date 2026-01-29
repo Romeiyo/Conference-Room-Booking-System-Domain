@@ -4,6 +4,7 @@ using System.Linq;
 using ConferenceRoomBookingSystem.Enums;
 
 namespace ConferenceRoomBookingSystem.Models{
+    [Serializable]
     public class ConferenceRoom{
         public int Id { get; set; }
         public string Name { get; set; }

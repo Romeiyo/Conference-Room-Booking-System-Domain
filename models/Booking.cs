@@ -2,6 +2,7 @@ using System;
 using ConferenceRoomBookingSystem.Enums;
 using ConferenceRoomBookingSystem.Models;
 
+[Serializable]
 public class Booking
 {
     public ConferenceRoom Room { get; }
@@ -21,6 +22,8 @@ public class Booking
         EndTime = endTime;
         Status = BookingStatus.Booked;
     }
+
+    public Booking() {}
 
     public void CancelBooking()
     {

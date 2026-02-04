@@ -1,6 +1,10 @@
 # .NET build outputs
 bin/
 obj/
+RoomDomain/bin/
+RoomDomain/obj/
+API/bin/
+API/obj/
 
 # VS Code files
 .vscode/

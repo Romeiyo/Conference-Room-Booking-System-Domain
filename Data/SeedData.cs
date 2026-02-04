@@ -4,8 +4,8 @@ using ConferenceRoomBookingSystem.Enums;
 using ConferenceRoomBookingSystem.Models;
 
 namespace ConferenceRoomBookingSystem.Data;
-public static class SeedData{
-    public static List<ConferenceRoom> SeedRooms()
+public class SeedData{
+    public List<ConferenceRoom> SeedRooms()
     {
         List<ConferenceRoom> ConferenceRooms = new List<ConferenceRoom>
         {

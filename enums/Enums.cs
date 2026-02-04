@@ -8,10 +8,11 @@ namespace ConferenceRoomBookingSystem.Enums
         Cancelled
     }
 
-    public enum RoomType
+    public enum RoomStatus
     {
-        Standard,
-        Boardroom,
-        Training,
+        Available,
+        Unavailable,
+        Maintenance
     }
+    
 }

@@ -22,7 +22,7 @@ public class Booking
         //UserId = userId;
         Start = start;
         End = end;
-        Status = BookingStatus.Booked;
+       // Status = BookingStatus.Booked;
     }
 
     //public Booking() {}
@@ -31,9 +31,10 @@ public class Booking
     {
         Status = BookingStatus.Confirmed;
     }
-    public void Cancel()
+    public Booking Cancel()
     {
         Status = BookingStatus.Cancelled;
+        return this;
     }
     
 //     public bool OverlapsWith(DateTime otherStart, DateTime otherEnd)

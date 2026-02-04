@@ -33,8 +33,10 @@ public class BookingManager //Central Business Logic/ All  the business rules ar
         }
 
         Booking booking = new Booking(request.Room, request.Start, request.End);
+        
         booking.Confirm();
         _bookings.Add(booking);
+        
         return booking;
 
     }

@@ -16,21 +16,6 @@ namespace ConferenceRoomBookingSystem
             LoadBookingsFromStore();
         }
 
-        // private async void LoadBookingsFromStore()
-        // {
-        //     try
-        //     {
-        //         var storedBookings = await _bookingStore.LoadBookingsAsync();
-        //         _bookings.Clear();
-        //         _bookings.AddRange(storedBookings);
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         // Log the exception in a real application
-        //         Console.WriteLine($"Error loading bookings: {ex.Message}");
-        //     }
-        // }
-
         private async void LoadBookingsFromStore()
         {
             try
@@ -66,34 +51,8 @@ namespace ConferenceRoomBookingSystem
             return _bookings.ToList().AsReadOnly();
         }
 
-        // public Booking CreateBooking(BookingRequest request)
-        // {
-        //     if(request.Room == null)
-        //     {
-        //         throw new ArgumentException("Room must be provided");
-        //     }
-        //     if(request.StartTime >= request.EndTime)
-        //     {
-        //         throw new ArgumentException("End time must be after start time");
-        //     }
-        //     bool overlaps = _bookings.Any(b => b.Room.Id == request.Room.Id && b.Status == BookingStatus.Confirmed && request.StartTime < b.EndTime && request.EndTime > b.StartTime);
-
-        //     if(overlaps)
-        //     {
-        //         throw new BookingConflictException();
-        //     }
-
-        //     Booking booking = new Booking(request.Room, request.StartTime, request.EndTime);
-
-        //     booking.ConfirmBooking();
-        //     _bookings.Add(booking);
-
-        //     return booking;
-        // }
-
         public async Task<Booking> CreateBookingAsync(BookingRequest request)
         {
-            //var room = _roomRepository.GetRoomById(request.RoomId);
             
             if (request.Room == null)
             {

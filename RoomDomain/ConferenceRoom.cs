@@ -37,17 +37,5 @@ namespace ConferenceRoomBookingSystem{
             Capacity = capacity;
             //IsAvailable = isAvailable;
         }
-    
-        // public void BookRoom()
-        // {
-        //     if (!IsAvailable)
-        //         throw new InvalidOperationException("Room is not available");
-        //     IsAvailable = false;
-        // }
-    
-        // public void ReleaseRoom()
-        // {
-        //     IsAvailable = true;
-        // }
     }
 }

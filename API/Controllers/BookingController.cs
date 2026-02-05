@@ -21,14 +21,28 @@ namespace API.Controllers
         public async Task<IActionResult> GetAllBookings()
         {
             var bookings = _bookingManager.GetBookings();
-            return Ok(bookings);
+
+            var response = bookings.Select(b => new BookingResponseDto
+            {
+                Id = b.Id,
+                Room = new RoomDto
+                {
+                    Id = b.Room.Id,
+                    Name = b.Room.Name,
+                    Capacity = b.Room.Capacity,
+                    Type = b.Room.Type.ToString()
+                },
+                StartTime = b.StartTime,
+                EndTime = b.EndTime,
+                Status = b.Status.ToString()
+            }).ToList();
+    
+            return Ok(response);
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateBooking([FromBody] BookingRequestDto bookingDto)
         {
-            // var createdBooking = _bookingManager.CreateBooking(bookingRequest);
-            // return Ok(createdBooking);
             if (bookingDto?.Room == null)
             {
                 return BadRequest("Room is required");
@@ -40,21 +54,29 @@ namespace API.Controllers
                 return BadRequest($"Room not found or invalid");
             }
 
-            // var existingRoom = _roomRepository.GetRoomById(bookingDto.Room.Id);
-            // if (existingRoom == null)
-            // {
-            //     return BadRequest($"Room with ID {bookingDto.Room.Id} not found");
-            // }
-
-            
-
             // Get the exact room reference from repository
             var existingRoom = _roomRepository.GetRoomById(bookingDto.Room.Id);
             var request = new BookingRequest(existingRoom, bookingDto.StartTime, bookingDto.EndTime);
             try
             {
                 var createdBooking = await _bookingManager.CreateBookingAsync(request);
-                return Ok(createdBooking);
+        
+                var response = new BookingResponseDto
+                {
+                    Id = createdBooking.Id,
+                    Room = new RoomDto
+                    {
+                        Id = createdBooking.Room.Id,
+                        Name = createdBooking.Room.Name,
+                        Capacity = createdBooking.Room.Capacity,
+                        Type = createdBooking.Room.Type.ToString()
+                    },
+                    StartTime = createdBooking.StartTime,
+                    EndTime = createdBooking.EndTime,
+                    Status = createdBooking.Status.ToString()
+                };
+
+                return Ok(response); // Changed from return Ok(createdBooking)
             }
             catch (ArgumentException ex)
             {
@@ -68,6 +90,8 @@ namespace API.Controllers
             {
                 return StatusCode(500, $"An error occurred while creating the booking: {ex.Message}");
             }
+
+            
         }
 
     }

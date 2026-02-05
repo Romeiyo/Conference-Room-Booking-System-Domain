@@ -12,8 +12,6 @@ var dataDirectory = Path.Combine(builder.Environment.ContentRootPath, "Data");
 var bookingsFilePath = Path.Combine(dataDirectory, "bookings.json");
 Directory.CreateDirectory(dataDirectory);
 
-Directory.CreateDirectory(dataDirectory);
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers().AddJsonOptions(options =>

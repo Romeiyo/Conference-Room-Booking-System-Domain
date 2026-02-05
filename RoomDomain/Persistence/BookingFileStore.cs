@@ -5,7 +5,7 @@ using ConferenceRoomBookingSystem;
 
 namespace ConferenceRoomBookingSystem.Persistence
 {
-    public class BookingFileStore
+    public class BookingFileStore : IBookingStore
     {
         private readonly string _filePath;
 
@@ -16,11 +16,18 @@ namespace ConferenceRoomBookingSystem.Persistence
 
         public async Task SaveBookingsAsync(IEnumerable<Booking> bookings)
         {
-            string json = JsonSerializer.Serialize(bookings);
+            // if(!Directory.Exists(_directoryPath))
+            // {
+            //     Directory.CreateDirectory(_directoryPath);
+            // }
+            // var existingBookings = (await LoadBookingsAsync()).ToList();
+            // existingBookings.Add(bookings);
+
+            var json = JsonSerializer.Serialize(bookings);
             await File.WriteAllTextAsync(_filePath, json);
         }
 
-        public async Task<List<Booking>> LoadBookingsAsync()
+        public async Task<IReadOnlyList<Booking>> LoadBookingsAsync()
         {
             if (!File.Exists(_filePath))
             {
@@ -28,7 +35,8 @@ namespace ConferenceRoomBookingSystem.Persistence
             }
 
             string json = await File.ReadAllTextAsync(_filePath);
-            return JsonSerializer.Deserialize<List<Booking>>(json) ?? new List<Booking>();
+            var bookings = JsonSerializer.Deserialize<List<Booking>>(json) ?? new List<Booking>();
+            return bookings.AsReadOnly();
         }
     }
 }

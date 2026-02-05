@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using ConferenceRoomBookingSystem;
 
 namespace ConferenceRoomBookingSystem{
@@ -10,7 +11,10 @@ namespace ConferenceRoomBookingSystem{
         public string Name { get; set; }
         public int Capacity { get; set; }
         //public bool IsAvailable { get; set; }
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public RoomType Type { get; set; } 
+        
+        public ConferenceRoom() { }
 
         public ConferenceRoom(int id, string name, int capacity, RoomType type)
         {

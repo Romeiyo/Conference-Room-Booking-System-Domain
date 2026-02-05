@@ -5,14 +5,31 @@ namespace ConferenceRoomBookingSystem
         //properties
         private readonly List<Booking> _bookings;
         private readonly IBookingStore _bookingStore;
+        private readonly RoomRepository _roomRepository;
 
-        public BookingManager(IBookingStore bookingStore)
+        public BookingManager(IBookingStore bookingStore, RoomRepository roomRepository)
         {
             // var storedBookings = await _bookingStore.LoadBookingsAsync();
             _bookingStore = bookingStore;
+            _roomRepository = roomRepository;
             _bookings = new List<Booking>();
             LoadBookingsFromStore();
         }
+
+        // private async void LoadBookingsFromStore()
+        // {
+        //     try
+        //     {
+        //         var storedBookings = await _bookingStore.LoadBookingsAsync();
+        //         _bookings.Clear();
+        //         _bookings.AddRange(storedBookings);
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         // Log the exception in a real application
+        //         Console.WriteLine($"Error loading bookings: {ex.Message}");
+        //     }
+        // }
 
         private async void LoadBookingsFromStore()
         {
@@ -20,11 +37,25 @@ namespace ConferenceRoomBookingSystem
             {
                 var storedBookings = await _bookingStore.LoadBookingsAsync();
                 _bookings.Clear();
-                _bookings.AddRange(storedBookings);
+                
+                foreach (var booking in storedBookings)
+                {
+                    if (booking.Room != null)
+                    {
+                        var room = _roomRepository.GetRoomById(booking.Room.Id);
+                        if (room != null)
+                        {
+                            var restoredBooking = new Booking(room, booking.StartTime, booking.EndTime)
+                            {
+                                Status = booking.Status
+                            };
+                            _bookings.Add(restoredBooking);
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
-                // Log the exception in a real application
                 Console.WriteLine($"Error loading bookings: {ex.Message}");
             }
         }
@@ -62,6 +93,8 @@ namespace ConferenceRoomBookingSystem
 
         public async Task<Booking> CreateBookingAsync(BookingRequest request)
         {
+            //var room = _roomRepository.GetRoomById(request.RoomId);
+            
             if (request.Room == null)
             {
                 throw new ArgumentException("Room must be provided");
@@ -92,17 +125,6 @@ namespace ConferenceRoomBookingSystem
             await SaveBookingsToStore();
             
             return booking;
-        }
-
-        public async Task<bool> CancelBookingAsync(Booking booking)
-        {
-            if (booking != null && _bookings.Contains(booking))
-            {
-                booking.CancelBooking();
-                await SaveBookingsToStore();
-                return true;
-            }
-            return false;
         }
 
         private async Task SaveBookingsToStore()

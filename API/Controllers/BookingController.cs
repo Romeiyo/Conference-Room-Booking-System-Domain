@@ -25,8 +25,25 @@ namespace API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateBooking([FromBody] BookingRequest bookingRequest)
         {
-            var createdBooking = _bookingManager.CreateBooking(bookingRequest);
-            return Ok(createdBooking);
+            // var createdBooking = _bookingManager.CreateBooking(bookingRequest);
+            // return Ok(createdBooking);
+            try
+            {
+                var createdBooking = await _bookingManager.CreateBookingAsync(bookingRequest);
+                return Ok(createdBooking);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (BookingConflictException ex)
+            {
+                return Conflict(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while creating the booking");
+            }
         }
 
     }

@@ -14,4 +14,12 @@ namespace ConferenceRoomBookingSystem
         Boardroom,
         Training,
     }
+
+    public enum ErrorCategory
+    {
+        ValidationError,       
+        BusinessRuleViolation,  
+        InfrastructureFailure, 
+        UnexpectedError         
+    }
 }

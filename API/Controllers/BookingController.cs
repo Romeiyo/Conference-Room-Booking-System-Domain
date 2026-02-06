@@ -43,53 +43,51 @@ namespace API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateBooking([FromBody] BookingRequestDto bookingDto)
         {
-            if (bookingDto?.Room == null)
-            {
-                return BadRequest("Room is required");
-            }
+            // if (bookingDto?.Room == null)
+            // {
+            //     return BadRequest("Room is required");
+            // }
 
-            //Validate the room exists in our repository
-            if (!_roomRepository.RoomExists(bookingDto.Room))
-            {
-                return BadRequest($"Room not found or invalid");
-            }
+            // //Validate the room exists in our repository
+            // if (!_roomRepository.RoomExists(bookingDto.Room))
+            // {
+            //     return BadRequest($"Room not found or invalid");
+            // }
 
             // Get the exact room reference from repository
             var existingRoom = _roomRepository.GetRoomById(bookingDto.Room.Id);
             var request = new BookingRequest(existingRoom, bookingDto.StartTime, bookingDto.EndTime);
-            try
+            
+            var createdBooking = await _bookingManager.CreateBookingAsync(request);
+    
+            var response = new BookingResponseDto
             {
-                var createdBooking = await _bookingManager.CreateBookingAsync(request);
-        
-                var response = new BookingResponseDto
+                Id = createdBooking.Id,
+                Room = new RoomDto
                 {
-                    Id = createdBooking.Id,
-                    Room = new RoomDto
-                    {
-                        Id = createdBooking.Room.Id,
-                        Name = createdBooking.Room.Name,
-                        Capacity = createdBooking.Room.Capacity,
-                        Type = createdBooking.Room.Type.ToString()
-                    },
-                    StartTime = createdBooking.StartTime,
-                    EndTime = createdBooking.EndTime,
-                    Status = createdBooking.Status.ToString()
-                };
+                    Id = createdBooking.Room.Id,
+                    Name = createdBooking.Room.Name,
+                    Capacity = createdBooking.Room.Capacity,
+                    Type = createdBooking.Room.Type.ToString()
+                },                    StartTime = createdBooking.StartTime,
+                EndTime = createdBooking.EndTime,
+                Status = createdBooking.Status.ToString()
+            };
 
-                return Ok(response); // Changed from return Ok(createdBooking)
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (BookingConflictException ex)
-            {
-                return Conflict(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"An error occurred while creating the booking: {ex.Message}");
-            }
+            return Ok(response); // Changed from return Ok(createdBooking)
+            
+            // catch (ArgumentException ex)
+            // {
+            //     return BadRequest(ex.Message);
+            // }
+            // catch (BookingConflictException ex)
+            // {
+            //     return Conflict(ex.Message);
+            // }
+            // catch (Exception ex)
+            // {
+            //     return StatusCode(500, $"An error occurred while creating the booking: {ex.Message}");
+            // }
 
             
         }

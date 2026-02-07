@@ -99,5 +99,21 @@ namespace ConferenceRoomBookingSystem
                 throw;
             }
         }
+
+        public async Task<bool> CancelBookingAsync(int bookingId)
+        {
+            var booking = _bookings.FirstOrDefault(b => b.Id == bookingId);
+            if (booking == null)
+            {
+                return false; // Booking not found
+            }
+
+            booking.CancelBooking();
+            
+            // Save to store
+            await SaveBookingsToStore();
+            
+            return true;
+        }
     }
 }

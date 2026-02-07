@@ -115,5 +115,10 @@ namespace ConferenceRoomBookingSystem
             
             return true;
         }
+
+        public Booking GetBookingById(int bookingId)
+        {
+            return _bookings.FirstOrDefault(b => b.Id == bookingId);
+        }
     }
 }

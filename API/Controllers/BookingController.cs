@@ -40,6 +40,38 @@ namespace API.Controllers
             return Ok(response);
         }
 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetBookingById(int id)
+        {
+            var booking = _bookingManager.GetBookingById(id);
+
+            if (booking == null)
+            {
+                return NotFound(new
+                {
+                    error = "Booking not found",
+                    detail = $"Booking with id {id} not found"
+                });
+            }
+
+            var response = new BookingResponseDto
+            {
+                Id = booking.Id,
+                Room = new RoomDto
+                {
+                    Id = booking.Room.Id,
+                    Name = booking.Room.Name,
+                    Capacity = booking.Room.Capacity,
+                    Type = booking.Room.Type.ToString()
+                },
+                StartTime = booking.StartTime,
+                EndTime = booking.EndTime,
+                Status = booking.Status.ToString()
+            };
+
+            return Ok(response);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateBooking([FromBody] BookingRequestDto bookingDto)
         {
@@ -74,7 +106,7 @@ namespace API.Controllers
                 Status = createdBooking.Status.ToString()
             };
 
-            return Ok(response); // Changed from return Ok(createdBooking)
+            return Ok(response);
             
             // catch (ArgumentException ex)
             // {
@@ -90,6 +122,34 @@ namespace API.Controllers
             // }
 
             
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> CancelBooking(int id)
+        {
+            try
+            {
+                var success = await _bookingManager.CancelBookingAsync(id);
+
+                if(!success)
+                {
+                    return NotFound(new
+                    {
+                        error = "Booking not found or cannot be cancelled",
+                        detail = $"Booking with id {id} not found or cannot be cancelled"
+                    });
+                }
+
+                return Ok(new
+                {
+                    message = "Booking cancelled successfully",
+                    bookingId = id
+                });
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
 
     }

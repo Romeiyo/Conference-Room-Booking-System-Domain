@@ -6,11 +6,11 @@ public class Booking
     private static int _nextId = 1;
     public int Id { get; private set; } 
     public ConferenceRoom Room { get; }
-    //public int UserId { get; }
+    public int UserId { get; }
     public DateTime StartTime { get; set;}
     public DateTime EndTime { get; set;}
     public BookingStatus Status { get; set;}
-    public Booking(ConferenceRoom room,  DateTime startTime, DateTime endTime)
+    public Booking(ConferenceRoom room, int userId,  DateTime startTime, DateTime endTime)
     {
         // if (room == null) throw new ArgumentException("Room must be a Provided");
         // if (userId <= 0) throw new ArgumentException("User ID must be positive");
@@ -18,7 +18,7 @@ public class Booking
         
         Id = _nextId++;
         Room = room;
-        //UserId = userId;
+        UserId = userId;
         StartTime = startTime;
         EndTime = endTime;
         Status = BookingStatus.Booked;

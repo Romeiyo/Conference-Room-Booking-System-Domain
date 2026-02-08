@@ -96,7 +96,6 @@ namespace API.Controllers
             //     return BadRequest($"Room not found or invalid");
             // }
 
-            // Get the exact room reference from repository
             var existingRoom = _roomRepository.GetRoomById(bookingDto.Room.Id);
             
             var userId = GetCurrentUserId();

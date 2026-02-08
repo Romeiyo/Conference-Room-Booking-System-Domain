@@ -7,7 +7,7 @@ namespace ConferenceRoomBookingSystem
 {
     public interface IJwtService
     {
-        string GenerateToken(string username, string role, string userId);
+        string GenerateToken(string username, string role);
     }
 
     public class JwtService : IJwtService
@@ -22,7 +22,7 @@ namespace ConferenceRoomBookingSystem
         public string GenerateToken(string username, string role)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            //var secret = _configuration["Jwt:Secret"] ?? "The_Secret_Key_For_JWT_Token_Generation";
+            var secret = _configuration["Jwt:Secret"] ?? "The_Secret_Key_For_JWT_Token_Generation";
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Secret"]);
             
             var tokenDescriptor = new SecurityTokenDescriptor

@@ -1,3 +1,6 @@
+using System;
+using ConferenceRoomBookingSystem;
+
 namespace ConferenceRoomBookingSystem
 {
     public class BookingManager
@@ -30,7 +33,7 @@ namespace ConferenceRoomBookingSystem
                         var room = _roomRepository.GetRoomById(booking.Room.Id);
                         if (room != null)
                         {
-                            var restoredBooking = new Booking(room, booking.StartTime, booking.EndTime)
+                            var restoredBooking = new Booking(room, booking.UserId, booking.StartTime, booking.EndTime)
                             {
                                 Status = booking.Status
                             };
@@ -75,7 +78,7 @@ namespace ConferenceRoomBookingSystem
                 throw new BookingConflictException();
             }
 
-            Booking booking = new Booking(request.Room, request.StartTime, request.EndTime);
+            Booking booking = new Booking(request.Room, request.UserId, request.StartTime, request.EndTime);
             booking.ConfirmBooking();
             
             _bookings.Add(booking);

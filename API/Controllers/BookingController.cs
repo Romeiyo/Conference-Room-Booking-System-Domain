@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using ConferenceRoomBookingSystem;
 using System.Threading.Tasks;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class BookingController : ControllerBase
     {
         private readonly BookingManager _bookingManager;
@@ -18,11 +21,15 @@ namespace API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,Employee,Receptionist")]
         public async Task<IActionResult> GetAllBookings()
         {
+            var userId = GetCurrentUserId();
             var bookings = _bookingManager.GetBookings();
 
-            var response = bookings.Select(b => new BookingResponseDto
+            var userBookings = bookings.Where(b => b.UserId == userId).ToList();
+
+            var response = userBookings.Select(b => new BookingResponseDto
             {
                 Id = b.Id,
                 Room = new RoomDto
@@ -34,13 +41,15 @@ namespace API.Controllers
                 },
                 StartTime = b.StartTime,
                 EndTime = b.EndTime,
-                Status = b.Status.ToString()
+                Status = b.Status.ToString(),
+                UserId = b.UserId
             }).ToList();
     
             return Ok(response);
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "Admin,Employee,Receptionist")]
         public async Task<IActionResult> GetBookingById(int id)
         {
             var booking = _bookingManager.GetBookingById(id);
@@ -73,6 +82,7 @@ namespace API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Employee,Receptionist")]
         public async Task<IActionResult> CreateBooking([FromBody] BookingRequestDto bookingDto)
         {
             // if (bookingDto?.Room == null)
@@ -88,7 +98,10 @@ namespace API.Controllers
 
             // Get the exact room reference from repository
             var existingRoom = _roomRepository.GetRoomById(bookingDto.Room.Id);
-            var request = new BookingRequest(existingRoom, bookingDto.StartTime, bookingDto.EndTime);
+            
+            var userId = GetCurrentUserId();
+
+            var request = new BookingRequest(existingRoom, userId, bookingDto.StartTime, bookingDto.EndTime);
             
             var createdBooking = await _bookingManager.CreateBookingAsync(request);
     
@@ -101,12 +114,15 @@ namespace API.Controllers
                     Name = createdBooking.Room.Name,
                     Capacity = createdBooking.Room.Capacity,
                     Type = createdBooking.Room.Type.ToString()
-                },                    StartTime = createdBooking.StartTime,
+                },                    
+                StartTime = createdBooking.StartTime,
                 EndTime = createdBooking.EndTime,
-                Status = createdBooking.Status.ToString()
+                Status = createdBooking.Status.ToString(),
+                UserId = createdBooking.UserId
             };
 
             return Ok(response);
+            
             
             // catch (ArgumentException ex)
             // {
@@ -119,38 +135,51 @@ namespace API.Controllers
             // catch (Exception ex)
             // {
             //     return StatusCode(500, $"An error occurred while creating the booking: {ex.Message}");
-            // }
+            // }    
+        }
 
-            
+        [HttpGet("maintenance")]
+        [Authorize(Roles = "Facility Manager")]
+        public IActionResult GetMaintenanceInfo()
+        {
+            return Ok("Accessing maintenance booking");
+        }
+
+        private int GetCurrentUserId()
+        {
+            var username = User.FindFirst(ClaimTypes.Name)?.Value;
+
+            return username switch
+            {
+                "Admin" => 1,
+                "Employee1" => 2,
+                "Employee2" => 3,
+                "Facilitator" => 4,
+                "Receptionist" => 5,
+                _ => throw new Exception("User not found")
+            };
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> CancelBooking(int id)
         {
-            try
+            var success = await _bookingManager.CancelBookingAsync(id);
+
+            if(!success)
             {
-                var success = await _bookingManager.CancelBookingAsync(id);
-
-                if(!success)
+                return NotFound(new
                 {
-                    return NotFound(new
-                    {
-                        error = "Booking not found or cannot be cancelled",
-                        detail = $"Booking with id {id} not found or cannot be cancelled"
-                    });
-                }
-
-                return Ok(new
-                {
-                    message = "Booking cancelled successfully",
-                    bookingId = id
+                    error = "Booking not found or cannot be cancelled",
+                    detail = $"Booking with id {id} not found or cannot be cancelled"
                 });
             }
-            catch (Exception ex)
-            {
-                throw;
-            }
-        }
 
+            return Ok(new
+            {
+                message = "Booking cancelled successfully",
+                bookingId = id
+            });     
+        }
     }
 }

@@ -6,7 +6,6 @@ namespace ConferenceRoomBookingSystem
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -26,10 +25,13 @@ namespace ConferenceRoomBookingSystem
             if (token == null)
                 return Unauthorized(new { message = "Invalid credentials" });
 
+            var user = await _userService.GetUserByUsernameAsync(loginModel.Username);
+
             return Ok(new 
             { 
                 token,
                 username = loginModel.Username,
+                userId = user?.Id,
                 expires = DateTime.UtcNow.AddHours(2)
             });
         }
@@ -38,7 +40,11 @@ namespace ConferenceRoomBookingSystem
         [Authorize]
         public IActionResult TestAuth()
         {
-            return Ok(new { message = "You are authenticated!" });
+            return Ok(new { 
+                message = "You are authenticated!",
+                username = User.Identity?.Name,
+                role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+            });
         }
     }
 }

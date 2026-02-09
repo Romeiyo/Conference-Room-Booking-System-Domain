@@ -13,11 +13,13 @@ namespace API.Controllers
     {
         private readonly BookingManager _bookingManager;
         private readonly RoomRepository _roomRepository;
+        private readonly IUserService _userService;
 
-        public BookingController(BookingManager bookingManager, RoomRepository roomRepository)
+        public BookingController(BookingManager bookingManager, RoomRepository roomRepository, IUserService userService)
         {
             _bookingManager = bookingManager;
             _roomRepository = roomRepository;
+            _userService = userService;
         }
 
         [HttpGet]
@@ -25,11 +27,15 @@ namespace API.Controllers
         public async Task<IActionResult> GetAllBookings()
         {
             var userId = GetCurrentUserId();
+
+            var isAdmin = User.IsInRole("Admin");
             var bookings = _bookingManager.GetBookings();
 
-            var userBookings = bookings.Where(b => b.UserId == userId).ToList();
+            var filteredBookings = isAdmin ? bookings : bookings.Where(b => b.UserId == userId).ToList();
 
-            var response = userBookings.Select(b => new BookingResponseDto
+            //var userBookings = bookings.Where(b => b.UserId == userId).ToList();
+
+            var response = filteredBookings.Select(b => new BookingResponseDto
             {
                 Id = b.Id,
                 Room = new RoomDto
@@ -147,16 +153,17 @@ namespace API.Controllers
         private int GetCurrentUserId()
         {
             var username = User.FindFirst(ClaimTypes.Name)?.Value;
-
-            return username switch
+            if (string.IsNullOrEmpty(username))
             {
-                "Admin" => 1,
-                "Employee1" => 2,
-                "Employee2" => 3,
-                "Facilitator" => 4,
-                "Receptionist" => 5,
-                _ => throw new Exception("User not found")
-            };
+                throw new UnauthorizedAccessException("Username not found in token");
+            }
+            int userId = _userService.GetIntegerUserId(username);
+
+            if(userId == 0)
+            {
+                throw new UnauthorizedAccessException($"User '{username}' not found in system");
+            }
+            return userId;
         }
 
         [HttpDelete("{id}")]

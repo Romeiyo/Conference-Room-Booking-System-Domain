@@ -6,32 +6,23 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var secretKey = jwtSettings["SecretKey"] ?? "The_Secret_Key_For_JWT_Token_Generation";
+var secretKey = jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT secret key is not configured");
 
+//Database configuration
+builder.Services.AddDbContext<BookingsDbContext>(options =>
+options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Identity configuration
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+.AddEntityFrameworkStores<BookingsDbContext>()
+.AddDefaultTokenProviders();
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-//var builder = WebApplication.CreateBuilder(args);
-var dataDirectory = Path.Combine(builder.Environment.ContentRootPath, "Data");
-var bookingsFilePath = Path.Combine(dataDirectory, "bookings.json");
-Directory.CreateDirectory(dataDirectory);
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddControllers().AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        options.JsonSerializerOptions.WriteIndented = true;
-    });
-builder.Services.AddSingleton<BookingManager>();
-builder.Services.AddSingleton<IBookingStore>(sp => new BookingFileStore(bookingsFilePath));
-builder.Services.AddSingleton<RoomRepository>();
+// JWT Authentication configuration
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -39,37 +30,49 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    var jwt = builder.Configuration.GetSection("Jwt");
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"])),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
         ValidateIssuer = true, 
         ValidateAudience = true, 
         ValidateLifetime = true,
         ValidIssuer = jwtSettings["Issuer"],
-        ValidAudience = jwtSettings["Audience"]
+        ValidAudience = jwtSettings["Audience"],
+        ClockSkew = TimeSpan.Zero // Optional: reduce default clock skew for token expiration
     };
 });
-builder.Services.AddAuthorization();
+
+//Services
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.WriteIndented = true;
     });
+
+// Add services to the container.
+var dataDirectory = Path.Combine(builder.Environment.ContentRootPath, "Data");
+var bookingsFilePath = Path.Combine(dataDirectory, "bookings.json");
+Directory.CreateDirectory(dataDirectory);
+builder.Services.AddSingleton<BookingManager>();
+builder.Services.AddSingleton<IBookingStore>(sp => new BookingFileStore(bookingsFilePath));
+builder.Services.AddSingleton<RoomRepository>();
+
+//Services for authentication
+builder.Services.AddScoped<IDatabaseSeeder, DatabaseSeeder>();
 builder.Services.AddSingleton<IJwtService, JwtService>();
-builder.Services.AddSingleton<IUserService, UserService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -78,6 +81,27 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.MapControllers();
 
+// builder.Services.AddAuthorization();
+
+// builder.Services.AddSingleton<IJwtService, JwtService>();
+// builder.Services.AddSingleton<IUserService, UserService>();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    
+    try
+    {
+        var seeder = services.GetRequiredService<IDatabaseSeeder>();
+        await seeder.SeedAsync();
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error seeding database");
+    }
+}
 
 app.Run();

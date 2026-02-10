@@ -11,12 +11,15 @@ namespace API.Controllers
     [Authorize]
     public class BookingController : ControllerBase
     {
-        private readonly BookingManager _bookingManager;
+        //private readonly BookingManager _bookingManager;
+        private readonly IBookingRepository _bookingRepository;
+        private readonly IRoomRepository _roomRepository;
         private readonly IUserService _userService;
 
-        public BookingController(BookingManager bookingManager, IUserService userService)
+        public BookingController(IBookingRepository bookingRepository, IRoomRepository roomRepository, IUserService userService)
         {
-            _bookingManager = bookingManager;
+            _bookingRepository = bookingRepository;
+            _roomRepository = roomRepository;
             _userService = userService;
         }
 
@@ -29,17 +32,15 @@ namespace API.Controllers
             var isAdmin = User.IsInRole("Admin") || User.IsInRole("Receptionist");
 
 
-            IReadOnlyList<Booking> bookings;
-
-            //var filteredBookings = isAdmin ? bookings : bookings.Where(b => b.UserId == userId).ToList();
+            IEnumerable<Booking> bookings;
 
             if (isAdmin)
             {
-                bookings = await _bookingManager.GetBookingsAsync();
+                bookings = await _bookingRepository.GetAllAsync();
             }
             else
             {
-                bookings = await _bookingManager.GetUserBookingsAsync(userId);
+                bookings = await _bookingRepository.GetByUserIdAsync(userId);
             }
 
             //var userBookings = bookings.Where(b => b.UserId == userId).ToList();
@@ -67,7 +68,7 @@ namespace API.Controllers
         [Authorize(Roles = "Admin,Employee,Receptionist")]
         public async Task<IActionResult> GetBookingById(int id)
         {
-            var booking = await _bookingManager.GetBookingByIdAsync(id);
+            var booking = await _bookingRepository.GetByIdAsync(id);
 
             if (booking == null)
             {
@@ -110,37 +111,21 @@ namespace API.Controllers
         [Authorize(Roles = "Employee,Receptionist")]
         public async Task<IActionResult> CreateBooking([FromBody] BookingRequestDto bookingDto)
         {
-            // if (bookingDto?.Room == null)
-            // {
-            //     return BadRequest("Room is required");
-            // }
 
-            // //Validate the room exists in our repository
-            // if (!_roomRepository.RoomExists(bookingDto.Room))
-            // {
-            //     return BadRequest($"Room not found or invalid");
-            // }
+            var room = await _roomRepository.GetByIdAsync(bookingDto.Room.Id);
 
-            // var existingRoom = _roomRepository.GetRoomById(bookingDto.Room.Id);
-            
-            // var userId = GetCurrentUserId();
-
-            // var request = new BookingRequest(existingRoom, userId, bookingDto.StartTime, bookingDto.EndTime);
-            
-            // var createdBooking = await _bookingManager.CreateBookingAsync(request);
-
-            var room = await _bookingManager.GetRoomByIdAsync(bookingDto.Room.Id);
-
-            // if (room == null)
-            // {
-            //     return BadRequest($"Room with Id {bookingDto.Room.Id} not found");
-            // }
+            bool overlaps = await _bookingRepository.HasOverlapAsync(
+            room.Id, 
+            bookingDto.StartTime, 
+            bookingDto.EndTime);
 
             var userId = GetCurrentUserId();
 
-            var request = new BookingRequest(room, userId, bookingDto.StartTime, bookingDto.EndTime);
+            var booking = new Booking(room, userId, bookingDto.StartTime, bookingDto.EndTime);
+
+            booking.ConfirmBooking();
     
-            var createdBooking = await _bookingManager.CreateBookingAsync(request);
+            var createdBooking = await _bookingRepository.AddAsync(booking);
 
             var response = new BookingResponseDto
             {
@@ -159,20 +144,7 @@ namespace API.Controllers
             };
 
             return Ok(response);
-            
-            
-            // catch (ArgumentException ex)
-            // {
-            //     return BadRequest(ex.Message);
-            // }
-            // catch (BookingConflictException ex)
-            // {
-            //     return Conflict(ex.Message);
-            // }
-            // catch (Exception ex)
-            // {
-            //     return StatusCode(500, $"An error occurred while creating the booking: {ex.Message}");
-            // }    
+           
         }
 
         [HttpGet("maintenance")]
@@ -203,7 +175,7 @@ namespace API.Controllers
         public async Task<IActionResult> CancelBooking(int id)
         {
             //Get the booking by id
-            var booking = await _bookingManager.GetBookingByIdAsync(id);
+            var booking = await _bookingRepository.GetByIdAsync(id);
             if(booking == null)
             {
                 return NotFound(new
@@ -213,6 +185,7 @@ namespace API.Controllers
                 });
             }
 
+            //Authorize only the user who created the booking or an admin to cancel
             var userId = GetCurrentUserId();
             var isAdmin = User.IsInRole("Admin");
 
@@ -221,21 +194,31 @@ namespace API.Controllers
                 return Forbid();
             }
 
-            var success = await _bookingManager.CancelBookingAsync(id);
-            if(!success)
-            {
-                return BadRequest(new
-                {
-                    error = "Cannot cancel booking",
-                    detail = "Booking may already be cancelled or in progress"
-                });
-            }
+            //Cancel the booking
+            booking.CancelBooking();
+            await _bookingRepository.UpdateAsync(booking);
 
             return Ok(new
             {
                 message = "Booking cancelled successfully",
                 bookingId = id
             });     
+        }
+
+        [HttpGet("rooms")]
+        [Authorize(Roles = "Admin,Receptionist")]
+        public async Task<IActionResult> GetAllRooms()
+        {
+            var rooms = await _roomRepository.GetAllAsync();
+            var response = rooms.Select(r => new RoomDto
+            {
+                Id = r.Id,
+                Name = r.Name,
+                Capacity = r.Capacity,
+                Type = r.Type.ToString()
+            }).ToList();
+    
+            return Ok(response);
         }
     }
 }

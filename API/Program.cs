@@ -54,7 +54,7 @@ builder.Services.AddControllers()
 var dataDirectory = Path.Combine(builder.Environment.ContentRootPath, "Data");
 var bookingsFilePath = Path.Combine(dataDirectory, "bookings.json");
 Directory.CreateDirectory(dataDirectory);
-builder.Services.AddScoped<BookingManager>();
+//builder.Services.AddScoped<BookingManager>();
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 

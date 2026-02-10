@@ -53,7 +53,9 @@ namespace API.Controllers
                     Id = b.Room.Id,
                     Name = b.Room.Name,
                     Capacity = b.Room.Capacity,
-                    Type = b.Room.Type.ToString()
+                    Type = b.Room.Type.ToString(),
+                    Location = b.Room.Location,
+                    IsActive = b.Room.IsActive
                 },
                 StartTime = b.StartTime,
                 EndTime = b.EndTime,
@@ -99,7 +101,9 @@ namespace API.Controllers
                     Id = booking.Room.Id,
                     Name = booking.Room.Name,
                     Capacity = booking.Room.Capacity,
-                    Type = booking.Room.Type.ToString()
+                    Type = booking.Room.Type.ToString(),
+                    Location = booking.Room.Location,
+                    IsActive = booking.Room.IsActive
                 },
                 StartTime = booking.StartTime,
                 EndTime = booking.EndTime,
@@ -141,7 +145,9 @@ namespace API.Controllers
                     Id = createdBooking.Room.Id,
                     Name = createdBooking.Room.Name,
                     Capacity = createdBooking.Room.Capacity,
-                    Type = createdBooking.Room.Type.ToString()
+                    Type = createdBooking.Room.Type.ToString(),
+                    Location = createdBooking.Room.Location,
+                    IsActive = createdBooking.Room.IsActive
                 },                    
                 StartTime = createdBooking.StartTime,
                 EndTime = createdBooking.EndTime,
@@ -225,9 +231,29 @@ namespace API.Controllers
                 Id = r.Id,
                 Name = r.Name,
                 Capacity = r.Capacity,
-                Type = r.Type.ToString()
+                Type = r.Type.ToString(),
+                Location = r.Location,
+                IsActive = r.IsActive
             }).ToList();
     
+            return Ok(response);
+        }
+
+        [HttpGet("rooms/active")]
+        [Authorize(Roles = "Admin,Receptionist,Employee")]
+        public async Task<IActionResult> GetActiveRooms()
+        {
+            var rooms = await _roomRepository.GetActiveRoomsAsync();
+            var response = rooms.Select(r => new RoomDto
+            {
+                Id = r.Id,
+                Name = r.Name,
+                Capacity = r.Capacity,
+                Type = r.Type.ToString(),
+                Location = r.Location,
+                IsActive = r.IsActive
+            }).ToList();
+
             return Ok(response);
         }
     }

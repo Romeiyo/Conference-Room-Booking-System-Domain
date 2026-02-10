@@ -96,9 +96,6 @@ using (var scope = app.Services.CreateScope())
     {
         var seeder = services.GetRequiredService<IDatabaseSeeder>();
         await seeder.SeedAsync();
-
-        var context = services.GetRequiredService<BookingsDbContext>();
-        await SeedRoomsAsync(context, logger);
     }
     catch (Exception ex)
     {
@@ -107,17 +104,3 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
-
-async Task SeedRoomsAsync(BookingsDbContext context, ILogger logger)
-{
-    if (!context.ConferenceRooms.Any())
-    {
-        var seedData = new SeedData();
-        var rooms = seedData.SeedRooms();
-        
-        await context.ConferenceRooms.AddRangeAsync(rooms);
-        await context.SaveChangesAsync();
-        
-        logger.LogInformation("Seeded {Count} rooms to database", rooms.Count);
-    }
-}

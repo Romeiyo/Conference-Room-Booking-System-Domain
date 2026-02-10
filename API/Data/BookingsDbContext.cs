@@ -50,10 +50,28 @@ public class BookingsDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<ConferenceRoom>(entity =>
         {
             entity.HasKey(r => r.Id);
-            entity.Property(r => r.Id).ValueGeneratedOnAdd();
-            entity.Property(r => r.Name).IsRequired().HasMaxLength(100);
-            entity.Property(r => r.Capacity).IsRequired();
-            entity.Property(r => r.Type).HasConversion<string>();
+
+            entity.Property(r => r.Id)
+                  .ValueGeneratedOnAdd();
+
+            entity.Property(r => r.Name)
+                  .IsRequired()
+                  .HasMaxLength(100);
+
+            entity.Property(r => r.Capacity)
+                  .IsRequired();
+                  
+            entity.Property(r => r.Location)
+                  .IsRequired(false)
+                  .HasMaxLength(200)
+                  .HasDefaultValue(string.Empty);
+
+            entity.Property(r => r.IsActive)
+                  .IsRequired()
+                  .HasDefaultValue(true);
+
+            entity.Property(r => r.Type)
+                  .HasConversion<string>();
         });
         }
 }

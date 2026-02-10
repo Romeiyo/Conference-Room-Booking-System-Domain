@@ -46,6 +46,10 @@ namespace ConferenceRoomBookingSystem
             await UpdateExistingBookingsAsync(context);
 
             _logger.LogInformation("Existing bookings updated successfully!");
+
+            // await UpdateExistingRoomsAsync(context);
+
+            // _logger.LogInformation("Existing rooms updated successfully!");
         }
 
         private async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
@@ -116,16 +120,30 @@ namespace ConferenceRoomBookingSystem
 
         private async Task SeedRoomsAsync(BookingsDbContext context)
         {
-            if (!await context.ConferenceRooms.AnyAsync())
+            var seedData = new SeedData();
+            var rooms = seedData.SeedRooms();
+            
+            var existingRoomIds = await context.ConferenceRooms
+                .Select(r => r.Id)
+                .ToListAsync();
+
+            // Find rooms that don't exist in the database
+            var newRooms = rooms
+                .Where(r => !existingRoomIds.Contains(r.Id))
+                .ToList();
+
+            if(newRooms.Any())
             {
-                var seedData = new SeedData();
-                var rooms = seedData.SeedRooms();
-                
-                await context.ConferenceRooms.AddRangeAsync(rooms);
+                await context.ConferenceRooms.AddRangeAsync(newRooms);
                 await context.SaveChangesAsync();
-                
-                _logger.LogInformation("Seeded {Count} rooms to database", rooms.Count);
             }
+            else
+            {
+                _logger.LogInformation("No new rooms to seed. All rooms already exist in the database.");
+            }
+            
+            _logger.LogInformation("Seeded {Count} rooms to database", newRooms.Count);
+            
         }
 
         private async Task UpdateExistingBookingsAsync(BookingsDbContext context)
@@ -154,5 +172,31 @@ namespace ConferenceRoomBookingSystem
                     bookingsWithoutCapacity.Count);
             }
         }
+
+        // private async Task UpdateExistingRoomsAsync(BookingsDbContext context)
+        // {
+        //     var roomsWithoutLocation = await context.ConferenceRooms
+        //         .Where(r => r.Location == null || r.Location == string.Empty)
+        //         .ToListAsync();
+
+        //     foreach (var room in roomsWithoutLocation)
+        //     {
+        //         // Set default location based on room name or ID
+        //         room.Location = $"Building {((room.Id - 1) % 3) + 1}, Floor {((room.Id - 1) % 5) + 1}";
+
+        //         // Ensure IsActive is set
+        //         if (room.IsActive == default)  // If never set (default false for bool)
+        //         {
+        //             room.IsActive = true;  // Default to active
+        //         }
+        //     }
+
+        //     if (roomsWithoutLocation.Any())
+        //     {
+        //         await context.SaveChangesAsync();
+        //         _logger.LogInformation("Updated {Count} existing rooms with location and active status", 
+        //             roomsWithoutLocation.Count);
+        //     }
+        // }
     }
 }

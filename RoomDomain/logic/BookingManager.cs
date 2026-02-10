@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using ConferenceRoomBookingSystem;
 
 namespace ConferenceRoomBookingSystem
@@ -6,122 +9,143 @@ namespace ConferenceRoomBookingSystem
     public class BookingManager
     {
         //properties
-        private readonly List<Booking> _bookings;
-        private readonly IBookingStore _bookingStore;
-        private readonly RoomRepository _roomRepository;
+        private readonly IBookingRepository _bookingRepository;
+        private readonly IRoomRepository _roomRepository;
 
-        public BookingManager(IBookingStore bookingStore, RoomRepository roomRepository)
+        public BookingManager(IBookingRepository bookingRepository, IRoomRepository roomRepository)
         {
             // var storedBookings = await _bookingStore.LoadBookingsAsync();
-            _bookingStore = bookingStore;
+            _bookingRepository = bookingRepository;
             _roomRepository = roomRepository;
-            _bookings = new List<Booking>();
-            LoadBookingsFromStore();
         }
 
-        private async void LoadBookingsFromStore()
-        {
-            try
-            {
-                var storedBookings = await _bookingStore.LoadBookingsAsync();
-                _bookings.Clear();
+        // private async void LoadBookingsFromStore()
+        // {
+        //     try
+        //     {
+        //         var storedBookings = await _bookingStore.LoadBookingsAsync();
+        //         _bookings.Clear();
                 
-                foreach (var booking in storedBookings)
-                {
-                    if (booking.Room != null)
-                    {
-                        var room = _roomRepository.GetRoomById(booking.Room.Id);
-                        if (room != null)
-                        {
-                            var restoredBooking = new Booking(room, booking.UserId, booking.StartTime, booking.EndTime)
-                            {
-                                Status = booking.Status
-                            };
-                            _bookings.Add(restoredBooking);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading bookings: {ex.Message}");
-            }
-        }
+        //         foreach (var booking in storedBookings)
+        //         {
+        //             if (booking.Room != null)
+        //             {
+        //                 var room = _roomRepository.GetRoomById(booking.Room.Id);
+        //                 if (room != null)
+        //                 {
+        //                     var restoredBooking = new Booking(room, booking.UserId, booking.StartTime, booking.EndTime)
+        //                     {
+        //                         Status = booking.Status
+        //                     };
+        //                     _bookings.Add(restoredBooking);
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         Console.WriteLine($"Error loading bookings: {ex.Message}");
+        //     }
+        // }
 
         //methods
-        public IReadOnlyList<Booking> GetBookings()
+        public async Task<IReadOnlyList<Booking>> GetBookingsAsync()
         {
-            return _bookings.ToList().AsReadOnly();
+            var bookings = await _bookingRepository.GetAllAsync();
+            return bookings.ToList().AsReadOnly();
+        }
+
+        public async Task<Booking> GetBookingByIdAsync(int bookingId)
+        {
+            return await _bookingRepository.GetByIdAsync(bookingId);
+        }
+
+        public async Task<IReadOnlyList<Booking>> GetUserBookingsAsync(int userId)
+        {
+            var bookings = await _bookingRepository.GetByUserIdAsync(userId);
+            return bookings.ToList().AsReadOnly();
         }
 
         public async Task<Booking> CreateBookingAsync(BookingRequest request)
         {
-            
-            if (request.Room == null)
+            //Validating if room exists and is valid
+            var room = await _roomRepository.GetByIdAsync(request.Room.Id);
+            if (room == null)
             {
                 throw new ArgumentException("Room must be provided");
             }
             
+            //validating booking times
             if (request.StartTime >= request.EndTime)
             {
                 throw new ArgumentException("End time must be after start time");
             }
 
-            bool overlaps = _bookings.Any(b => 
-                b.Room.Id == request.Room.Id && 
-                b.Status == BookingStatus.Confirmed && 
-                request.StartTime < b.EndTime && 
-                request.EndTime > b.StartTime);
+            bool overlaps = await _bookingRepository.HasOverlapAsync(
+                room.Id, 
+                request.StartTime, 
+                request.EndTime);
 
             if (overlaps)
             {
                 throw new BookingConflictException();
             }
 
-            Booking booking = new Booking(request.Room, request.UserId, request.StartTime, request.EndTime);
+            // Create and confirm the booking
+            var booking = new Booking(room, request.UserId, request.StartTime, request.EndTime);
+
             booking.ConfirmBooking();
             
-            _bookings.Add(booking);
+            var createdBooking = await _bookingRepository.AddAsync(booking);
             
-            // Save to store
-            await SaveBookingsToStore();
-            
-            return booking;
-        }
-
-        private async Task SaveBookingsToStore()
-        {
-            try
-            {
-                await _bookingStore.SaveBookingsAsync(_bookings);
-            }
-            catch (Exception ex)
-            {
-                // Log the exception in a real application
-                Console.WriteLine($"Error saving bookings: {ex.Message}");
-                throw;
-            }
+            return createdBooking;
         }
 
         public async Task<bool> CancelBookingAsync(int bookingId)
         {
-            var booking = _bookings.FirstOrDefault(b => b.Id == bookingId);
+            var booking = await _bookingRepository.GetByIdAsync(bookingId);
             if (booking == null)
             {
                 return false; // Booking not found
             }
 
+            //check if already cancelled
+            if (booking.Status == BookingStatus.Cancelled)
+            {
+                return false; // Already cancelled
+            }
+
             booking.CancelBooking();
             
-            // Save to store
-            await SaveBookingsToStore();
+            await _bookingRepository.UpdateAsync(booking);
             
             return true;
         }
 
-        public Booking GetBookingById(int bookingId)
+        // private async Task SaveBookingsToStore()
+        // {
+        //     try
+        //     {
+        //         await _bookingStore.SaveBookingsAsync(_bookings);
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         // Log the exception in a real application
+        //         Console.WriteLine($"Error saving bookings: {ex.Message}");
+        //         throw;
+        //     }
+        // }
+
+        public async Task<IReadOnlyList<ConferenceRoom>> GetAllRoomsAsync()
         {
-            return _bookings.FirstOrDefault(b => b.Id == bookingId);
+            var rooms = await _roomRepository.GetAllAsync();
+            return rooms.ToList().AsReadOnly();
         }
+
+        public async Task<ConferenceRoom> GetRoomByIdAsync(int roomId)
+        {
+            return await _roomRepository.GetByIdAsync(roomId);
+        }
+
     }
 }

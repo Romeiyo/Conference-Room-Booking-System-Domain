@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using ConferenceRoomBookingSystem;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using ConferenceRoomBookingSystem;
 
 namespace API.Controllers
 {
@@ -12,13 +12,11 @@ namespace API.Controllers
     public class BookingController : ControllerBase
     {
         private readonly BookingManager _bookingManager;
-        private readonly RoomRepository _roomRepository;
         private readonly IUserService _userService;
 
-        public BookingController(BookingManager bookingManager, RoomRepository roomRepository, IUserService userService)
+        public BookingController(BookingManager bookingManager, IUserService userService)
         {
             _bookingManager = bookingManager;
-            _roomRepository = roomRepository;
             _userService = userService;
         }
 
@@ -28,14 +26,25 @@ namespace API.Controllers
         {
             var userId = GetCurrentUserId();
 
-            var isAdmin = User.IsInRole("Admin");
-            var bookings = _bookingManager.GetBookings();
+            var isAdmin = User.IsInRole("Admin") || User.IsInRole("Receptionist");
 
-            var filteredBookings = isAdmin ? bookings : bookings.Where(b => b.UserId == userId).ToList();
+
+            IReadOnlyList<Booking> bookings;
+
+            //var filteredBookings = isAdmin ? bookings : bookings.Where(b => b.UserId == userId).ToList();
+
+            if (isAdmin)
+            {
+                bookings = await _bookingManager.GetBookingsAsync();
+            }
+            else
+            {
+                bookings = await _bookingManager.GetUserBookingsAsync(userId);
+            }
 
             //var userBookings = bookings.Where(b => b.UserId == userId).ToList();
 
-            var response = filteredBookings.Select(b => new BookingResponseDto
+            var response = bookings.Select(b => new BookingResponseDto
             {
                 Id = b.Id,
                 Room = new RoomDto
@@ -58,7 +67,7 @@ namespace API.Controllers
         [Authorize(Roles = "Admin,Employee,Receptionist")]
         public async Task<IActionResult> GetBookingById(int id)
         {
-            var booking = _bookingManager.GetBookingById(id);
+            var booking = await _bookingManager.GetBookingByIdAsync(id);
 
             if (booking == null)
             {
@@ -67,6 +76,15 @@ namespace API.Controllers
                     error = "Booking not found",
                     detail = $"Booking with id {id} not found"
                 });
+            }
+
+            //Check if the user is authorized to view this booking
+            var userId = GetCurrentUserId();
+            var isAdmin = User.IsInRole("Admin") || User.IsInRole("Receptionist");
+
+            if (!isAdmin && booking.UserId != userId)
+            {
+                return Forbid();
             }
 
             var response = new BookingResponseDto
@@ -81,7 +99,8 @@ namespace API.Controllers
                 },
                 StartTime = booking.StartTime,
                 EndTime = booking.EndTime,
-                Status = booking.Status.ToString()
+                Status = booking.Status.ToString(),
+                UserId = booking.UserId
             };
 
             return Ok(response);
@@ -102,14 +121,27 @@ namespace API.Controllers
             //     return BadRequest($"Room not found or invalid");
             // }
 
-            var existingRoom = _roomRepository.GetRoomById(bookingDto.Room.Id);
+            // var existingRoom = _roomRepository.GetRoomById(bookingDto.Room.Id);
             
+            // var userId = GetCurrentUserId();
+
+            // var request = new BookingRequest(existingRoom, userId, bookingDto.StartTime, bookingDto.EndTime);
+            
+            // var createdBooking = await _bookingManager.CreateBookingAsync(request);
+
+            var room = await _bookingManager.GetRoomByIdAsync(bookingDto.Room.Id);
+
+            // if (room == null)
+            // {
+            //     return BadRequest($"Room with Id {bookingDto.Room.Id} not found");
+            // }
+
             var userId = GetCurrentUserId();
 
-            var request = new BookingRequest(existingRoom, userId, bookingDto.StartTime, bookingDto.EndTime);
-            
-            var createdBooking = await _bookingManager.CreateBookingAsync(request);
+            var request = new BookingRequest(room, userId, bookingDto.StartTime, bookingDto.EndTime);
     
+            var createdBooking = await _bookingManager.CreateBookingAsync(request);
+
             var response = new BookingResponseDto
             {
                 Id = createdBooking.Id,
@@ -170,14 +202,32 @@ namespace API.Controllers
         [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> CancelBooking(int id)
         {
-            var success = await _bookingManager.CancelBookingAsync(id);
-
-            if(!success)
+            //Get the booking by id
+            var booking = await _bookingManager.GetBookingByIdAsync(id);
+            if(booking == null)
             {
                 return NotFound(new
                 {
                     error = "Booking not found or cannot be cancelled",
                     detail = $"Booking with id {id} not found or cannot be cancelled"
+                });
+            }
+
+            var userId = GetCurrentUserId();
+            var isAdmin = User.IsInRole("Admin");
+
+            if (!isAdmin && booking.UserId != userId)
+            {
+                return Forbid();
+            }
+
+            var success = await _bookingManager.CancelBookingAsync(id);
+            if(!success)
+            {
+                return BadRequest(new
+                {
+                    error = "Cannot cancel booking",
+                    detail = "Booking may already be cancelled or in progress"
                 });
             }
 

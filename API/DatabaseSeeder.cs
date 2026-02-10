@@ -1,4 +1,3 @@
-// Add this file: DatabaseSeeder.cs (place in root or create Services/ folder)
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,6 +38,8 @@ namespace ConferenceRoomBookingSystem
             
             // Seed users
             await SeedUsersAsync(userManager);
+
+            await SeedRoomsAsync(context);
             
             _logger.LogInformation("Database seeded successfully!");
         }
@@ -107,6 +108,20 @@ namespace ConferenceRoomBookingSystem
             }
 
             _logger.LogInformation("User seeding completed");
+        }
+
+        private async Task SeedRoomsAsync(BookingsDbContext context)
+        {
+            if (!await context.ConferenceRooms.AnyAsync())
+            {
+                var seedData = new SeedData();
+                var rooms = seedData.SeedRooms();
+                
+                await context.ConferenceRooms.AddRangeAsync(rooms);
+                await context.SaveChangesAsync();
+                
+                _logger.LogInformation("Seeded {Count} rooms to database", rooms.Count);
+            }
         }
     }
 }

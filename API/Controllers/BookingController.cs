@@ -58,7 +58,10 @@ namespace API.Controllers
                 StartTime = b.StartTime,
                 EndTime = b.EndTime,
                 Status = b.Status.ToString(),
-                UserId = b.UserId
+                UserId = b.UserId,
+                Capacity = b.Capacity,
+                CreatedAt = b.CreatedAt,
+                CancelledAt = b.CancelledAt
             }).ToList();
     
             return Ok(response);
@@ -101,7 +104,10 @@ namespace API.Controllers
                 StartTime = booking.StartTime,
                 EndTime = booking.EndTime,
                 Status = booking.Status.ToString(),
-                UserId = booking.UserId
+                UserId = booking.UserId,
+                Capacity = booking.Capacity,
+                CreatedAt = booking.CreatedAt,
+                CancelledAt = booking.CancelledAt
             };
 
             return Ok(response);
@@ -140,7 +146,10 @@ namespace API.Controllers
                 StartTime = createdBooking.StartTime,
                 EndTime = createdBooking.EndTime,
                 Status = createdBooking.Status.ToString(),
-                UserId = createdBooking.UserId
+                UserId = createdBooking.UserId,
+                Capacity = createdBooking.Capacity,
+                CreatedAt = createdBooking.CreatedAt,
+                CancelledAt = createdBooking.CancelledAt
             };
 
             return Ok(response);
@@ -201,7 +210,8 @@ namespace API.Controllers
             return Ok(new
             {
                 message = "Booking cancelled successfully",
-                bookingId = id
+                bookingId = id,
+                cancelledAt = booking.CancelledAt
             });     
         }
 

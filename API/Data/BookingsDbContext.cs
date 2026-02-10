@@ -33,6 +33,17 @@ public class BookingsDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(b => b.EndTime).IsRequired();
             entity.Property(b => b.UserId).IsRequired();
             entity.Property(b => b.RoomId).IsRequired();
+
+            entity.Property(b => b.Capacity)
+                  .IsRequired()
+                  .HasDefaultValue(0);
+
+            entity.Property(b => b.CreatedAt)
+                  .IsRequired(false)
+                  .HasDefaultValueSql(null); // Set default value in code, not in DB
+
+            entity.Property(b => b.CancelledAt)
+                  .IsRequired(false);
         });
 
         // Configure ConferenceRoom entity

@@ -42,6 +42,10 @@ namespace ConferenceRoomBookingSystem
             await SeedRoomsAsync(context);
             
             _logger.LogInformation("Database seeded successfully!");
+
+            await UpdateExistingBookingsAsync(context);
+
+            _logger.LogInformation("Existing bookings updated successfully!");
         }
 
         private async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
@@ -121,6 +125,33 @@ namespace ConferenceRoomBookingSystem
                 await context.SaveChangesAsync();
                 
                 _logger.LogInformation("Seeded {Count} rooms to database", rooms.Count);
+            }
+        }
+
+        private async Task UpdateExistingBookingsAsync(BookingsDbContext context)
+        {
+            var bookingsWithoutCapacity = await context.Bookings
+                .Where(b => b.Capacity == 0)
+                .Include(b => b.Room)
+                .ToListAsync();
+    
+            foreach (var booking in bookingsWithoutCapacity)
+            {
+                // Set capacity from room
+                booking.Capacity = booking.Room?.Capacity ?? 10;
+        
+                // Set CreatedAt if null (for existing records)
+                if (booking.CreatedAt == DateTime.MinValue)
+                {
+                    booking.CreatedAt = DateTime.UtcNow.AddDays(-30); // Default to 30 days ago
+                }
+            }
+    
+            if (bookingsWithoutCapacity.Any())
+            {
+                await context.SaveChangesAsync();
+                _logger.LogInformation("Updated {Count} existing bookings with new columns", 
+                    bookingsWithoutCapacity.Count);
             }
         }
     }

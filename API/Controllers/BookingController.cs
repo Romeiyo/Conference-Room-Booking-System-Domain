@@ -206,7 +206,7 @@ namespace API.Controllers
         }
 
         [HttpGet("rooms")]
-        [Authorize(Roles = "Admin,Receptionist")]
+        [Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
         public async Task<IActionResult> GetAllRooms()
         {
             var rooms = await _roomRepository.GetAllAsync();

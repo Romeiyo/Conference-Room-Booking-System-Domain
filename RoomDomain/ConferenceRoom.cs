@@ -10,7 +10,6 @@ namespace ConferenceRoomBookingSystem{
         public int Id { get; set; }
         public string Name { get; set; }
         public int Capacity { get; set; }
-        //public bool IsAvailable { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public RoomType Type { get; set; } 
         
@@ -35,7 +34,7 @@ namespace ConferenceRoomBookingSystem{
             Id = id;
             Name = name;
             Capacity = capacity;
-            //IsAvailable = isAvailable;
+            
         }
     }
 }

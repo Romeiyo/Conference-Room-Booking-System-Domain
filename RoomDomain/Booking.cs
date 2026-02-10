@@ -3,10 +3,10 @@ namespace ConferenceRoomBookingSystem;
 [Serializable]
 public class Booking
 {
-    private static int _nextId = 1;
-    public int Id { get; private set; } 
-    public ConferenceRoom Room { get; }
-    public int UserId { get; }
+    public int Id { get; set; } 
+    public int RoomId { get; set; }
+    public ConferenceRoom Room { get; set; }
+    public int UserId { get; set; }
     public DateTime StartTime { get; set;}
     public DateTime EndTime { get; set;}
     public BookingStatus Status { get; set;}
@@ -16,15 +16,15 @@ public class Booking
         // if (userId <= 0) throw new ArgumentException("User ID must be positive");
         // if (endTime <= startTime) throw new ArgumentException("End time must be after start time");
         
-        Id = _nextId++;
         Room = room;
+        RoomId = room?.Id ?? 0;
         UserId = userId;
         StartTime = startTime;
         EndTime = endTime;
         Status = BookingStatus.Booked;
     }
 
-    //public Booking() {}
+    public Booking() {}
     public void ConfirmBooking()
     {
         Status = BookingStatus.Confirmed;

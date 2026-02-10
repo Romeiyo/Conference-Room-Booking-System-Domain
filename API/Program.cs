@@ -39,7 +39,6 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
-        ClockSkew = TimeSpan.Zero // Optional: reduce default clock skew for token expiration
     };
 });
 
@@ -55,9 +54,9 @@ builder.Services.AddControllers()
 var dataDirectory = Path.Combine(builder.Environment.ContentRootPath, "Data");
 var bookingsFilePath = Path.Combine(dataDirectory, "bookings.json");
 Directory.CreateDirectory(dataDirectory);
-builder.Services.AddSingleton<BookingManager>();
-builder.Services.AddSingleton<IBookingStore>(sp => new BookingFileStore(bookingsFilePath));
-builder.Services.AddSingleton<RoomRepository>();
+builder.Services.AddScoped<BookingManager>();
+builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 
 //Services for authentication
 builder.Services.AddScoped<IDatabaseSeeder, DatabaseSeeder>();
@@ -97,6 +96,9 @@ using (var scope = app.Services.CreateScope())
     {
         var seeder = services.GetRequiredService<IDatabaseSeeder>();
         await seeder.SeedAsync();
+
+        var context = services.GetRequiredService<BookingsDbContext>();
+        await SeedRoomsAsync(context, logger);
     }
     catch (Exception ex)
     {
@@ -105,3 +107,17 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+async Task SeedRoomsAsync(BookingsDbContext context, ILogger logger)
+{
+    if (!context.ConferenceRooms.Any())
+    {
+        var seedData = new SeedData();
+        var rooms = seedData.SeedRooms();
+        
+        await context.ConferenceRooms.AddRangeAsync(rooms);
+        await context.SaveChangesAsync();
+        
+        logger.LogInformation("Seeded {Count} rooms to database", rooms.Count);
+    }
+}

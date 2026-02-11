@@ -5,8 +5,8 @@ using ConferenceRoomBookingSystem;
 
 namespace ConferenceRoomBookingSystem
 {
-    public class SeedData(){
-
+    public class SeedData()
+    {
         public List<ConferenceRoom> SeedRooms()
         {
             List<ConferenceRoom> ConferenceRooms = new List<ConferenceRoom>()
@@ -29,6 +29,30 @@ namespace ConferenceRoomBookingSystem
                 new ConferenceRoom (16, "Room P", 30, RoomType.Standard, "Cape Town", true),
             };
             return ConferenceRooms;
+        }
+
+        public List<Booking> SeedBookings()
+        {
+            var rooms = SeedRooms();
+
+            List<Booking> Bookings = new List<Booking>()
+            {
+                new Booking(rooms[0], 2, new DateTime(2026, 02, 10, 9, 0, 0), new DateTime(2026, 02, 10, 10, 0, 0))
+                {
+                    Id = 1,
+                    CreatedAt = new DateTime(2026, 01, 15, 12, 0, 0)
+                },
+
+                new Booking(rooms[1], 3, new DateTime(2026, 02, 11, 14, 0, 0), new DateTime(2026, 02, 11, 15, 30, 0))
+                {
+                    Id = 2,
+                    Status = BookingStatus.Cancelled,
+                    CreatedAt = new DateTime(2026, 01, 20, 9, 30, 0),
+                    CancelledAt = new DateTime(2026, 01, 25, 10, 0, 0)
+                },
+            };
+            return Bookings;
         }    
     }
+ 
 }

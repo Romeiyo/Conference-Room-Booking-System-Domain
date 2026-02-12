@@ -33,16 +33,45 @@ public class BookingsDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(b => b.EndTime).IsRequired();
             entity.Property(b => b.UserId).IsRequired();
             entity.Property(b => b.RoomId).IsRequired();
+
+            entity.Property(b => b.Capacity)
+                  .IsRequired()
+                  .HasDefaultValue(0);
+
+            entity.Property(b => b.CreatedAt)
+                  .IsRequired(false)
+                  .HasDefaultValueSql(null); // Set default value in code, not in DB
+
+            entity.Property(b => b.CancelledAt)
+                  .IsRequired(false);
         });
 
         // Configure ConferenceRoom entity
         builder.Entity<ConferenceRoom>(entity =>
         {
             entity.HasKey(r => r.Id);
-            entity.Property(r => r.Id).ValueGeneratedOnAdd();
-            entity.Property(r => r.Name).IsRequired().HasMaxLength(100);
-            entity.Property(r => r.Capacity).IsRequired();
-            entity.Property(r => r.Type).HasConversion<string>();
+
+            entity.Property(r => r.Id)
+                  .ValueGeneratedOnAdd();
+
+            entity.Property(r => r.Name)
+                  .IsRequired()
+                  .HasMaxLength(100);
+
+            entity.Property(r => r.Capacity)
+                  .IsRequired();
+                  
+            entity.Property(r => r.Location)
+                  .IsRequired(false)
+                  .HasMaxLength(200)
+                  .HasDefaultValue(string.Empty);
+
+            entity.Property(r => r.IsActive)
+                  .IsRequired()
+                  .HasDefaultValue(true);
+
+            entity.Property(r => r.Type)
+                  .HasConversion<string>();
         });
         }
 }

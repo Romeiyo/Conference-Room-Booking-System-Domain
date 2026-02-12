@@ -52,5 +52,13 @@ namespace ConferenceRoomBookingSystem
                 r.Capacity == capacity && 
                 r.Type == type);
         }
+
+        public async Task<IEnumerable<ConferenceRoom>> GetActiveRoomsAsync()
+        {
+            return await _context.ConferenceRooms
+                .Where(r => r.IsActive)  
+                .OrderBy(r => r.Name)
+                .ToListAsync();
+        }
     }
 }

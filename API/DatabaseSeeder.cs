@@ -42,6 +42,14 @@ namespace ConferenceRoomBookingSystem
             await SeedRoomsAsync(context);
             
             _logger.LogInformation("Database seeded successfully!");
+
+            await UpdateExistingBookingsAsync(context);
+
+            _logger.LogInformation("Existing bookings updated successfully!");
+
+            await SeedBookingsAsync(context);
+
+            _logger.LogInformation("Existing bookings seeded successfully!");
         }
 
         private async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
@@ -112,15 +120,169 @@ namespace ConferenceRoomBookingSystem
 
         private async Task SeedRoomsAsync(BookingsDbContext context)
         {
-            if (!await context.ConferenceRooms.AnyAsync())
+            var seedData = new SeedData();
+            var rooms = seedData.SeedRooms();
+            
+            var existingRoomIds = await context.ConferenceRooms
+                .Select(r => r.Id)
+                .ToListAsync();
+
+            // Find rooms that don't exist in the database
+            var newRooms = rooms
+                .Where(r => !existingRoomIds.Contains(r.Id))
+                .ToList();
+
+            if(newRooms.Any())
             {
-                var seedData = new SeedData();
-                var rooms = seedData.SeedRooms();
+                await context.ConferenceRooms.AddRangeAsync(newRooms);
+                await context.SaveChangesAsync();
+            }
+            else
+            {
+                _logger.LogInformation("No new rooms to seed. All rooms already exist in the database.");
+            }
+            
+            _logger.LogInformation("Seeded {Count} rooms to database", newRooms.Count);
+            
+        }
+
+        // private async Task SeedBookingsAsync(BookingsDbContext context)
+        // {
+        //     var rooms = await context.ConferenceRooms.ToListAsync();
+
+        //     if (!rooms.Any())
+        //     {
+        //         _logger.LogWarning("No rooms found in database. Skipping booking seeding.");
+        //         await SeedRoomsAsync(context);
+        //         rooms = await context.ConferenceRooms.ToListAsync();
+        //     }
+
+        //     var seedData = new SeedData();
+        //     var bookings = seedData.SeedBookings();
+
+        //     int newBookingsCount = 0;
+        //     int updatedBookingsCount = 0;
+
+        //     foreach (var seedBooking in bookings)
+        //     {
+        //         var existingBooking = await context.Bookings.FindAsync(seedBooking.Id);
+
+        //         if (existingBooking == null)
+        //         {
+        //             var room = rooms.FirstOrDefault(r => r.Id == seedBooking.RoomId);
+        //             if (room == null)
+        //             {
+        //                 _logger.LogWarning("Room with ID {RoomId} not found for booking {BookingId}. Skipping this booking.", 
+        //                     seedBooking.RoomId, seedBooking.Id);
+        //                 continue;
+        //             }
+
+        //             context.Bookings.Add(seedBooking);
+        //             newBookingsCount++;
+
+        //             _logger.LogInformation("Added new booking with ID {BookingId} for room {RoomName}", 
+        //                 seedBooking.Id, room.Name);
+        //         }
+        //         else
+        //         {
+        //             existingBooking.StartTime = seedBooking.StartTime;
+        //             existingBooking.EndTime = seedBooking.EndTime;
+        //             existingBooking.UserId = seedBooking.UserId;
+        //             existingBooking.RoomId = seedBooking.RoomId;
+        //             existingBooking.Status = seedBooking.Status;
+        //             existingBooking.Capacity = seedBooking.Capacity;
+        //             existingBooking.CreatedAt = seedBooking.CreatedAt;
+        //             existingBooking.CancelledAt = seedBooking.CancelledAt;
+
+        //             updatedBookingsCount++;
+
+        //             _logger.LogInformation("Updated existing booking with ID {BookingId}", 
+        //                 existingBooking.Id);
+        //         }
+        //     }
+
+        //     if (newBookingsCount > 0 || updatedBookingsCount > 0)
+        //     {
+        //         await context.SaveChangesAsync();
+        //         _logger.LogInformation("Saved {NewCount} new bookings and updated {UpdatedCount} existing bookings to database", 
+        //             newBookingsCount, updatedBookingsCount);
+        //     }
+        //     else
+        //     {
+        //         _logger.LogInformation("No new bookings to add or update. All bookings are up to date.");
+        //     }
+        // }
+        private async Task SeedBookingsAsync(BookingsDbContext context)
+        {
+            // Get rooms from database (already tracked)
+            var rooms = await context.ConferenceRooms.ToListAsync();
+            
+            var seedData = new SeedData();
+            var bookings = seedData.SeedBookings();
+            
+            // Clear the Room navigation property to avoid tracking issues
+            foreach (var booking in bookings)
+            {
+                booking.Room = null; // Detach the room object
+            }
+            
+            // Get existing booking IDs
+            var existingBookingIds = await context.Bookings
+                .Select(b => b.Id)
+                .ToListAsync();
+            
+            var newBookings = bookings
+                .Where(b => !existingBookingIds.Contains(b.Id))
+                .ToList();
+            
+            if (newBookings.Any())
+            {
+                // Re-attach correct room references
+                foreach (var booking in newBookings)
+                {
+                    var room = rooms.FirstOrDefault(r => r.Id == booking.RoomId);
+                    if (room != null)
+                    {
+                        booking.Room = room;
+                        booking.Capacity = room.Capacity; // Ensure capacity matches room
+                    }
+                }
                 
-                await context.ConferenceRooms.AddRangeAsync(rooms);
+                await context.Bookings.AddRangeAsync(newBookings);
                 await context.SaveChangesAsync();
                 
-                _logger.LogInformation("Seeded {Count} rooms to database", rooms.Count);
+                _logger.LogInformation("Added {Count} new bookings to database", newBookings.Count);
+            }
+            else
+            {
+                _logger.LogInformation("No new bookings to add");
+            }
+        }
+
+        private async Task UpdateExistingBookingsAsync(BookingsDbContext context)
+        {
+            var bookingsWithoutCapacity = await context.Bookings
+                .Where(b => b.Capacity == 0)
+                .Include(b => b.Room)
+                .ToListAsync();
+    
+            foreach (var booking in bookingsWithoutCapacity)
+            {
+                // Set capacity from room
+                booking.Capacity = booking.Room?.Capacity ?? 10;
+        
+                // Set CreatedAt if null (for existing records)
+                if (booking.CreatedAt == DateTime.MinValue)
+                {
+                    booking.CreatedAt = DateTime.UtcNow.AddDays(-30); // Default to 30 days ago
+                }
+            }
+    
+            if (bookingsWithoutCapacity.Any())
+            {
+                await context.SaveChangesAsync();
+                _logger.LogInformation("Updated {Count} existing bookings with new columns", 
+                    bookingsWithoutCapacity.Count);
             }
         }
     }

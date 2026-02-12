@@ -8,18 +8,17 @@ namespace ConferenceRoomBookingSystem{
     [Serializable]
     public class ConferenceRoom{
         public int Id { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public int Capacity { get; set; }
+        public string Location { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public RoomType Type { get; set; } 
+        public RoomType Type { get; set; } = RoomType.Standard;
         
         public ConferenceRoom() { }
 
-        public ConferenceRoom(int id, string name, int capacity, RoomType type)
+        public ConferenceRoom(int id, string name, int capacity, RoomType type, string location = "", bool isActive = true)
         {
-            // if (id <= 0) throw new ArgumentException("Id must be positive");
-            // if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name is required");
-            // if (capacity <= 0) throw new ArgumentException("Capacity must be positive");
             if (string.IsNullOrWhiteSpace(name))
             {
                 throw new Exception("A room name is required");
@@ -32,7 +31,9 @@ namespace ConferenceRoomBookingSystem{
 
             Type = type;
             Id = id;
-            Name = name;
+            Name = name ?? string.Empty;
+            Location = location ?? string.Empty;
+            IsActive = isActive;
             Capacity = capacity;
             
         }

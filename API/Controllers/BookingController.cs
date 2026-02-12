@@ -11,12 +11,15 @@ namespace API.Controllers
     [Authorize]
     public class BookingController : ControllerBase
     {
-        private readonly BookingManager _bookingManager;
+        //private readonly BookingManager _bookingManager;
+        private readonly IBookingRepository _bookingRepository;
+        private readonly IRoomRepository _roomRepository;
         private readonly IUserService _userService;
 
-        public BookingController(BookingManager bookingManager, IUserService userService)
+        public BookingController(IBookingRepository bookingRepository, IRoomRepository roomRepository, IUserService userService)
         {
-            _bookingManager = bookingManager;
+            _bookingRepository = bookingRepository;
+            _roomRepository = roomRepository;
             _userService = userService;
         }
 
@@ -29,17 +32,15 @@ namespace API.Controllers
             var isAdmin = User.IsInRole("Admin") || User.IsInRole("Receptionist");
 
 
-            IReadOnlyList<Booking> bookings;
-
-            //var filteredBookings = isAdmin ? bookings : bookings.Where(b => b.UserId == userId).ToList();
+            IEnumerable<Booking> bookings;
 
             if (isAdmin)
             {
-                bookings = await _bookingManager.GetBookingsAsync();
+                bookings = await _bookingRepository.GetAllAsync();
             }
             else
             {
-                bookings = await _bookingManager.GetUserBookingsAsync(userId);
+                bookings = await _bookingRepository.GetByUserIdAsync(userId);
             }
 
             //var userBookings = bookings.Where(b => b.UserId == userId).ToList();
@@ -52,12 +53,17 @@ namespace API.Controllers
                     Id = b.Room.Id,
                     Name = b.Room.Name,
                     Capacity = b.Room.Capacity,
-                    Type = b.Room.Type.ToString()
+                    Type = b.Room.Type.ToString(),
+                    Location = b.Room.Location,
+                    IsActive = b.Room.IsActive
                 },
                 StartTime = b.StartTime,
                 EndTime = b.EndTime,
                 Status = b.Status.ToString(),
-                UserId = b.UserId
+                UserId = b.UserId,
+                Capacity = b.Capacity,
+                CreatedAt = b.CreatedAt,
+                CancelledAt = b.CancelledAt
             }).ToList();
     
             return Ok(response);
@@ -67,7 +73,7 @@ namespace API.Controllers
         [Authorize(Roles = "Admin,Employee,Receptionist")]
         public async Task<IActionResult> GetBookingById(int id)
         {
-            var booking = await _bookingManager.GetBookingByIdAsync(id);
+            var booking = await _bookingRepository.GetByIdAsync(id);
 
             if (booking == null)
             {
@@ -95,12 +101,17 @@ namespace API.Controllers
                     Id = booking.Room.Id,
                     Name = booking.Room.Name,
                     Capacity = booking.Room.Capacity,
-                    Type = booking.Room.Type.ToString()
+                    Type = booking.Room.Type.ToString(),
+                    Location = booking.Room.Location,
+                    IsActive = booking.Room.IsActive
                 },
                 StartTime = booking.StartTime,
                 EndTime = booking.EndTime,
                 Status = booking.Status.ToString(),
-                UserId = booking.UserId
+                UserId = booking.UserId,
+                Capacity = booking.Capacity,
+                CreatedAt = booking.CreatedAt,
+                CancelledAt = booking.CancelledAt
             };
 
             return Ok(response);
@@ -110,37 +121,21 @@ namespace API.Controllers
         [Authorize(Roles = "Employee,Receptionist")]
         public async Task<IActionResult> CreateBooking([FromBody] BookingRequestDto bookingDto)
         {
-            // if (bookingDto?.Room == null)
-            // {
-            //     return BadRequest("Room is required");
-            // }
 
-            // //Validate the room exists in our repository
-            // if (!_roomRepository.RoomExists(bookingDto.Room))
-            // {
-            //     return BadRequest($"Room not found or invalid");
-            // }
+            var room = await _roomRepository.GetByIdAsync(bookingDto.Room.Id);
 
-            // var existingRoom = _roomRepository.GetRoomById(bookingDto.Room.Id);
-            
-            // var userId = GetCurrentUserId();
-
-            // var request = new BookingRequest(existingRoom, userId, bookingDto.StartTime, bookingDto.EndTime);
-            
-            // var createdBooking = await _bookingManager.CreateBookingAsync(request);
-
-            var room = await _bookingManager.GetRoomByIdAsync(bookingDto.Room.Id);
-
-            // if (room == null)
-            // {
-            //     return BadRequest($"Room with Id {bookingDto.Room.Id} not found");
-            // }
+            bool overlaps = await _bookingRepository.HasOverlapAsync(
+            room.Id, 
+            bookingDto.StartTime, 
+            bookingDto.EndTime);
 
             var userId = GetCurrentUserId();
 
-            var request = new BookingRequest(room, userId, bookingDto.StartTime, bookingDto.EndTime);
+            var booking = new Booking(room, userId, bookingDto.StartTime, bookingDto.EndTime);
+
+            booking.ConfirmBooking();
     
-            var createdBooking = await _bookingManager.CreateBookingAsync(request);
+            var createdBooking = await _bookingRepository.AddAsync(booking);
 
             var response = new BookingResponseDto
             {
@@ -150,29 +145,21 @@ namespace API.Controllers
                     Id = createdBooking.Room.Id,
                     Name = createdBooking.Room.Name,
                     Capacity = createdBooking.Room.Capacity,
-                    Type = createdBooking.Room.Type.ToString()
+                    Type = createdBooking.Room.Type.ToString(),
+                    Location = createdBooking.Room.Location,
+                    IsActive = createdBooking.Room.IsActive
                 },                    
                 StartTime = createdBooking.StartTime,
                 EndTime = createdBooking.EndTime,
                 Status = createdBooking.Status.ToString(),
-                UserId = createdBooking.UserId
+                UserId = createdBooking.UserId,
+                Capacity = createdBooking.Capacity,
+                CreatedAt = createdBooking.CreatedAt,
+                CancelledAt = createdBooking.CancelledAt
             };
 
             return Ok(response);
-            
-            
-            // catch (ArgumentException ex)
-            // {
-            //     return BadRequest(ex.Message);
-            // }
-            // catch (BookingConflictException ex)
-            // {
-            //     return Conflict(ex.Message);
-            // }
-            // catch (Exception ex)
-            // {
-            //     return StatusCode(500, $"An error occurred while creating the booking: {ex.Message}");
-            // }    
+           
         }
 
         [HttpGet("maintenance")]
@@ -203,7 +190,7 @@ namespace API.Controllers
         public async Task<IActionResult> CancelBooking(int id)
         {
             //Get the booking by id
-            var booking = await _bookingManager.GetBookingByIdAsync(id);
+            var booking = await _bookingRepository.GetByIdAsync(id);
             if(booking == null)
             {
                 return NotFound(new
@@ -213,6 +200,7 @@ namespace API.Controllers
                 });
             }
 
+            //Authorize only the user who created the booking or an admin to cancel
             var userId = GetCurrentUserId();
             var isAdmin = User.IsInRole("Admin");
 
@@ -221,21 +209,52 @@ namespace API.Controllers
                 return Forbid();
             }
 
-            var success = await _bookingManager.CancelBookingAsync(id);
-            if(!success)
-            {
-                return BadRequest(new
-                {
-                    error = "Cannot cancel booking",
-                    detail = "Booking may already be cancelled or in progress"
-                });
-            }
+            //Cancel the booking
+            booking.CancelBooking();
+            await _bookingRepository.UpdateAsync(booking);
 
             return Ok(new
             {
                 message = "Booking cancelled successfully",
-                bookingId = id
+                bookingId = id,
+                cancelledAt = booking.CancelledAt
             });     
+        }
+
+        [HttpGet("rooms")]
+        [Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
+        public async Task<IActionResult> GetAllRooms()
+        {
+            var rooms = await _roomRepository.GetAllAsync();
+            var response = rooms.Select(r => new RoomDto
+            {
+                Id = r.Id,
+                Name = r.Name,
+                Capacity = r.Capacity,
+                Type = r.Type.ToString(),
+                Location = r.Location,
+                IsActive = r.IsActive
+            }).ToList();
+    
+            return Ok(response);
+        }
+
+        [HttpGet("rooms/active")]
+        [Authorize(Roles = "Admin,Receptionist,Employee")]
+        public async Task<IActionResult> GetActiveRooms()
+        {
+            var rooms = await _roomRepository.GetActiveRoomsAsync();
+            var response = rooms.Select(r => new RoomDto
+            {
+                Id = r.Id,
+                Name = r.Name,
+                Capacity = r.Capacity,
+                Type = r.Type.ToString(),
+                Location = r.Location,
+                IsActive = r.IsActive
+            }).ToList();
+
+            return Ok(response);
         }
     }
 }

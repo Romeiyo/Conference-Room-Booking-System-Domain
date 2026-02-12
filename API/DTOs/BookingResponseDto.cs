@@ -8,6 +8,9 @@ namespace ConferenceRoomBookingSystem
         public DateTime EndTime { get; set; }
         public string Status { get; set; }
         public int UserId { get; set; }
+        public int Capacity { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? CancelledAt { get; set; }
     }
 
     public class RoomDto
@@ -16,5 +19,7 @@ namespace ConferenceRoomBookingSystem
         public string Name { get; set; }
         public int Capacity { get; set; }
         public string Type { get; set; }
+        public string Location { get; set; }
+        public bool IsActive { get; set; }
     }
 }

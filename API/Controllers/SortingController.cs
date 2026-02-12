@@ -149,7 +149,6 @@ namespace ConferenceRoomBookingSystem.Controllers
                 .Where(b => b.Status == BookingStatus.Cancelled);
     
             query = query.OrderBy(b => b.CancelledAt ?? b.StartTime);
-            
 
             var totalCount = await query.CountAsync();
 
@@ -766,9 +765,7 @@ namespace ConferenceRoomBookingSystem.Controllers
                 .AsNoTracking();
     
             query = query.OrderBy(r => r.Name);
-            
-            
-
+       
             var totalCount = await query.CountAsync();
 
             var results = await query
@@ -812,7 +809,6 @@ namespace ConferenceRoomBookingSystem.Controllers
                 .Where(r => r.IsActive && r.Type == roomType)
                 .AsNoTracking();
 
-            // DEMO 6 — Sorting
             if (sortBy == "name")
             {
                 query = query.OrderBy(r => r.Name);
@@ -847,9 +843,5 @@ namespace ConferenceRoomBookingSystem.Controllers
                 data = results
             });
         }
-
-        // ============ PRIVATE HELPER METHODS ============
-
-        
     }
 }

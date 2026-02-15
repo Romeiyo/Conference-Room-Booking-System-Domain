@@ -1080,11 +1080,90 @@ namespace API.Controllers
                 totalCount,
                 page,
                 pageSize,
-                sortBy = sortBy ?? "name_asc",
+                sortBy = sortBy ?? "IsActive",
                 data = results
             });
         }
 
+        /// <summary>
+        /// GET /api/sorting/rooms/active?page=1&pageSize=10
+        /// Get only active rooms (IsActive = true)
+        /// </summary>
+        [HttpGet("rooms/Isactive")]
+        [Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
+        public async Task<IActionResult> GetActiveRooms(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var query = _context.ConferenceRooms
+                .Where(r => r.IsActive == true)  // Filter for active rooms only
+                .OrderBy(r => r.Name)            // Default sort by name
+                .AsNoTracking();
+
+            var totalCount = await query.CountAsync();
+
+            var results = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(r => new RoomListDto
+                {
+                    Id = r.Id,
+                    Name = r.Name,
+                    Capacity = r.Capacity,
+                    Location = r.Location,
+                    Type = r.Type.ToString(),
+                    IsActive = r.IsActive
+                })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                totalCount,
+                page,
+                pageSize,
+                data = results
+            });
+        }
+
+        /// <summary>
+        /// GET /api/sorting/rooms/active?page=1&pageSize=10
+        /// Get only inactive rooms (IsActive = false)
+        /// </summary>
+        [HttpGet("rooms/isinactive")]
+        [Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
+        public async Task<IActionResult> GetInActiveRooms(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var query = _context.ConferenceRooms
+                .Where(r => r.IsActive == false)  // Filter for inactive rooms only
+                .OrderBy(r => r.Name)            // Default sort by name
+                .AsNoTracking();
+
+            var totalCount = await query.CountAsync();
+
+            var results = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(r => new RoomListDto
+                {
+                    Id = r.Id,
+                    Name = r.Name,
+                    Capacity = r.Capacity,
+                    Location = r.Location,
+                    Type = r.Type.ToString(),
+                    IsActive = r.IsActive
+                })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                totalCount,
+                page,
+                pageSize,
+                data = results
+            });
+        }
 
     }
 }

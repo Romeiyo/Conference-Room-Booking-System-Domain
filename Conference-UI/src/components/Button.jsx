@@ -1,6 +1,8 @@
-function Button({ label }) {
+import '../App.css';
+
+function Button({ label, onClick }) {
     return (
-        <button>
+        <button className="btn" onClick={onClick}>
             {label}
         </button>
     );

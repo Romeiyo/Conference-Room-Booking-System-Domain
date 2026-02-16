@@ -3,18 +3,21 @@ import Footer from './components/footer';
 import BookingList from './components/BookingList';
 import Button from './components/Button';
 import bookings from './mockData';
-//import './App.css'
+import './App.css'
 
 function App() { 
 
   return (
-    <div>
+    <div className='app-container'>
       <Navbar />
-
-      <BookingList bookings={bookings}/>
-      
-      <Button label="Cancel Booking"/>
-      
+        <main className='main-content'>
+          <BookingList bookings={bookings}/>
+            <div style ={{ textAlign: "center", marginTop: "2rem"}}>
+              <Button 
+                label="Cancel Booking" 
+                onClick={() => alert("Select Booking to Cancel")} />
+            </div>
+        </main>
       <Footer />
     </div>
   );

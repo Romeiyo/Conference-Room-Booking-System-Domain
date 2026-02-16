@@ -1,6 +1,8 @@
+import '../App.css';
+
 function Navbar() {
     return (
-        <nav>
+        <nav className="navbar">
             <h1>Conference Room Booking System</h1>
             <ul>
                 <li><a href="/">Home</a></li>

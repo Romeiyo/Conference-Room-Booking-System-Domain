@@ -1,8 +1,9 @@
 import BookingCard from './BookingCard';
+import '../App.css';
 
 function BookingList({ bookings }) {
     return (
-        <div>
+        <div className='booking-list'>
             <h2>Current Bookings</h2>
             {bookings.map(booking => (
                 <BookingCard key={booking.id} booking={booking} />

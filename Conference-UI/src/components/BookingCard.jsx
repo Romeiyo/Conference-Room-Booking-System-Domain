@@ -1,6 +1,8 @@
+import '../App.css';
+
 function BookingCard({ booking }) {
     return (
-        <div style={{ border: "1px solid #ccc", padding: "10px", margin: "5px" }}>
+        <div className='booking-card'>
             <h3>{booking.roomName}</h3>
             <p><strong>Date:</strong> {booking.date}</p>
             <p><strong>Time:</strong> {booking.startTime} - {booking.endTime}</p>

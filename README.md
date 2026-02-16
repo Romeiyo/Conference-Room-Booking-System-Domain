@@ -42,6 +42,14 @@ This repository is used for:
 - Navigate to the project directory
 - Run: dotnet run
 
+## Running the frontend
+
+- Ensure you have the latest version of node [installed(install here)](https://nodejs.org/en/download)
+- cd to react folder using `cd Conference-UI` 
+- run `npm install`
+- run `npm run dev`
+- follow the local http link to see frontend
+
 ---
 
 ## 🚀 Usage

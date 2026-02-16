@@ -13,7 +13,6 @@ namespace API.Controllers
     [Authorize]
     public class BookingController : ControllerBase
     {
-        //private readonly BookingManager _bookingManager;
         private readonly IBookingRepository _bookingRepository;
         private readonly IRoomRepository _roomRepository;
         private readonly IUserService _userService;
@@ -27,98 +26,31 @@ namespace API.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        [Authorize(Roles = "Admin,Employee,Receptionist")]
-        public async Task<IActionResult> GetAllBookings()
+        private IQueryable<Booking> GetBaseBookingQuery()
         {
             var userId = GetCurrentUserId();
-
             var isAdmin = User.IsInRole("Admin") || User.IsInRole("Receptionist");
 
+            var query = _context.Bookings
+                .Include(b => b.Room)
+                .Where(b => b.Status != BookingStatus.Cancelled)
+                .AsNoTracking();
 
-            IEnumerable<Booking> bookings;
-
-            if (isAdmin)
+            if (!isAdmin)
             {
-                bookings = await _bookingRepository.GetAllAsync();
-            }
-            else
-            {
-                bookings = await _bookingRepository.GetByUserIdAsync(userId);
+                query = query.Where(b => b.UserId == userId);
             }
 
-            //var userBookings = bookings.Where(b => b.UserId == userId).ToList();
-
-            var response = bookings.Select(b => new BookingResponseDto
-            {
-                Id = b.Id,
-                Room = new RoomDto
-                {
-                    Id = b.Room.Id,
-                    Name = b.Room.Name,
-                    Capacity = b.Room.Capacity,
-                    Type = b.Room.Type.ToString(),
-                    Location = b.Room.Location,
-                    IsActive = b.Room.IsActive
-                },
-                StartTime = b.StartTime,
-                EndTime = b.EndTime,
-                Status = b.Status.ToString(),
-                UserId = b.UserId,
-                Capacity = b.Capacity,
-                CreatedAt = b.CreatedAt,
-                CancelledAt = b.CancelledAt
-            }).ToList();
-    
-            return Ok(response);
+            return query;
         }
 
-        [HttpGet("{id}")]
-        [Authorize(Roles = "Admin,Employee,Receptionist")]
-        public async Task<IActionResult> GetBookingById(int id)
+        private int GetCurrentUserId()
         {
-            var booking = await _bookingRepository.GetByIdAsync(id);
-
-            if (booking == null)
-            {
-                return NotFound(new
-                {
-                    error = "Booking not found",
-                    detail = $"Booking with id {id} not found"
-                });
-            }
-
-            //Check if the user is authorized to view this booking
-            var userId = GetCurrentUserId();
-            var isAdmin = User.IsInRole("Admin") || User.IsInRole("Receptionist");
-
-            if (!isAdmin && booking.UserId != userId)
-            {
-                return Forbid();
-            }
-
-            var response = new BookingResponseDto
-            {
-                Id = booking.Id,
-                Room = new RoomDto
-                {
-                    Id = booking.Room.Id,
-                    Name = booking.Room.Name,
-                    Capacity = booking.Room.Capacity,
-                    Type = booking.Room.Type.ToString(),
-                    Location = booking.Room.Location,
-                    IsActive = booking.Room.IsActive
-                },
-                StartTime = booking.StartTime,
-                EndTime = booking.EndTime,
-                Status = booking.Status.ToString(),
-                UserId = booking.UserId,
-                Capacity = booking.Capacity,
-                CreatedAt = booking.CreatedAt,
-                CancelledAt = booking.CancelledAt
-            };
-
-            return Ok(response);
+            var username = User.FindFirst(ClaimTypes.Name)?.Value;
+            if (string.IsNullOrEmpty(username))
+                throw new UnauthorizedAccessException("Username not found in token");
+            
+            return _userService.GetIntegerUserId(username);
         }
 
         [HttpPost]
@@ -173,22 +105,6 @@ namespace API.Controllers
             return Ok("Accessing maintenance booking");
         }
 
-        // private int GetCurrentUserId()
-        // {
-        //     var username = User.FindFirst(ClaimTypes.Name)?.Value;
-        //     if (string.IsNullOrEmpty(username))
-        //     {
-        //         throw new UnauthorizedAccessException("Username not found in token");
-        //     }
-        //     int userId = _userService.GetIntegerUserId(username);
-
-        //     if(userId == 0)
-        //     {
-        //         throw new UnauthorizedAccessException($"User '{username}' not found in system");
-        //     }
-        //     return userId;
-        // }
-
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> CancelBooking(int id)
@@ -225,71 +141,8 @@ namespace API.Controllers
             });     
         }
 
-        [HttpGet("rooms")]
-        [Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
-        public async Task<IActionResult> GetAllRooms()
-        {
-            var rooms = await _roomRepository.GetAllAsync();
-            var response = rooms.Select(r => new RoomDto
-            {
-                Id = r.Id,
-                Name = r.Name,
-                Capacity = r.Capacity,
-                Type = r.Type.ToString(),
-                Location = r.Location,
-                IsActive = r.IsActive
-            }).ToList();
-    
-            return Ok(response);
-        }
-
-        [HttpGet("rooms/active")]
-        [Authorize(Roles = "Admin,Receptionist,Employee")]
-        public async Task<IActionResult> GetActiveRooms()
-        {
-            var rooms = await _roomRepository.GetActiveRoomsAsync();
-            var response = rooms.Select(r => new RoomDto
-            {
-                Id = r.Id,
-                Name = r.Name,
-                Capacity = r.Capacity,
-                Type = r.Type.ToString(),
-                Location = r.Location,
-                IsActive = r.IsActive
-            }).ToList();
-
-            return Ok(response);
-        }
-
-        private IQueryable<Booking> GetBaseBookingQuery()
-        {
-            var userId = GetCurrentUserId();
-            var isAdmin = User.IsInRole("Admin") || User.IsInRole("Receptionist");
-
-            var query = _context.Bookings
-                .Include(b => b.Room)
-                .Where(b => b.Status != BookingStatus.Cancelled)
-                .AsNoTracking();
-
-            if (!isAdmin)
-            {
-                query = query.Where(b => b.UserId == userId);
-            }
-
-            return query;
-        }
-
-        private int GetCurrentUserId()
-        {
-            var username = User.FindFirst(ClaimTypes.Name)?.Value;
-            if (string.IsNullOrEmpty(username))
-                throw new UnauthorizedAccessException("Username not found in token");
-            
-            return _userService.GetIntegerUserId(username);
-        }
-
         // ============ BOOKING SORTING ENDPOINTS ============
-        /// GET /api/sorting/bookings/roomName?page=1&pageSize=10&sortBy=roomName
+        /// GET /api/bookings/bookings/roomName?page=1&pageSize=10&sortBy=roomName
         [HttpGet("bookings/roomName")]
         [Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsSortedByRoomName(
@@ -334,7 +187,7 @@ namespace API.Controllers
             });
         }
 
-        /// GET /api/sorting/bookings/startTime?page=1&pageSize=10&sortBy=startTime
+        /// GET /api/bookings/bookings/startTime?page=1&pageSize=10&sortBy=startTime
         [HttpGet("bookings/startTime")]
         [Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsSortedByStartTime(
@@ -379,7 +232,7 @@ namespace API.Controllers
             });
         }
 
-        /// GET /api/sorting/bookings/status/Cancelled?page=1&pageSize=10&sortBy
+        /// GET /api/bookings/bookings/status/Cancelled?page=1&pageSize=10&sortBy
         [HttpGet("bookings/status/Cancelled")]
         [Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetCancelledBookings(
@@ -416,7 +269,7 @@ namespace API.Controllers
             });
         }
 
-        /// GET /api/sorting/bookings/createdAt?page=1&pageSize=10&sortBy=createdAt
+        /// GET /api/bookings/bookings/createdAt?page=1&pageSize=10&sortBy=createdAt
         [HttpGet("bookings/createdAt")]
         [Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsSortedByCreatedDate(
@@ -461,7 +314,7 @@ namespace API.Controllers
             });
         }
 
-        /// GET /api/sorting/bookings/capacity?page=1&pageSize=10&sortBy=capacity
+        /// GET /api/bookings/bookings/capacity?page=1&pageSize=10&sortBy=capacity
         [HttpGet("bookings/capacity")]
         [Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsSortedByCapacity(
@@ -507,7 +360,7 @@ namespace API.Controllers
         }
 
         // ============ BOOKING FILTERING ENDPOINTS ============
-        /// GET /api/sorting/bookings/location/Bloemfontein?page=1&pageSize=10&sortBy=startTime
+        /// GET /api/bookings/bookings/location/Bloemfontein?page=1&pageSize=10&sortBy=startTime
         [HttpGet("bookings/location/{location}")]
         [Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsByLocation(
@@ -554,7 +407,7 @@ namespace API.Controllers
             });
         }
 
-        /// GET /api/sorting/bookings/room/5?page=1&pageSize=10&sortBy=startTime
+        /// GET /api/bookings/bookings/room/5?page=1&pageSize=10&sortBy=startTime
         [HttpGet("bookings/room/{roomId}")]
         [Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsByRoomId(
@@ -601,7 +454,7 @@ namespace API.Controllers
             });
         }
 
-        /// GET /api/sorting/bookings/date/2026/02/15?page=1&pageSize=10&sortBy=startTime
+        /// GET /api/bookings/bookings/date/2026/02/15?page=1&pageSize=10&sortBy=startTime
         [HttpGet("bookings/date/{year}/{month}/{day}")]
         [Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsByDate(
@@ -651,7 +504,7 @@ namespace API.Controllers
             });
         }
 
-        /// GET /api/sorting/bookings/date-range/2026-02-01/2026-02-28?page=1&pageSize=10&sortBy=startTime
+        /// GET /api/bookings/bookings/date-range/2026-02-01/2026-02-28?page=1&pageSize=10&sortBy=startTime
         [HttpGet("bookings/date-range/{from}/{to}")]
         [Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsByDateRange(
@@ -665,7 +518,6 @@ namespace API.Controllers
             var query = GetBaseBookingQuery()
                 .Where(b => b.StartTime >= from && b.EndTime <= toDateEnd);
 
-            // DEMO 6 — Sorting
             if (sortBy == "startTime")
             {
                 query = query.OrderBy(b => b.StartTime);
@@ -701,7 +553,7 @@ namespace API.Controllers
             });
         }
 
-        /// GET /api/sorting/bookings/status/Confirmed?page=1&pageSize=10&sortBy=startTime
+        /// GET /api/bookings/bookings/status/Confirmed?page=1&pageSize=10&sortBy=startTime
         [HttpGet("bookings/status/{status}")]
         [Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsByStatus(
@@ -753,7 +605,7 @@ namespace API.Controllers
             });
         }
 
-        /// GET /api/sorting/bookings/user/2?page=1&pageSize=10&sortBy=startTime
+        /// GET /api/bookings/bookings/user/2?page=1&pageSize=10&sortBy=startTime
         [HttpGet("bookings/user/{userId}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetBookingsByUserId(
@@ -802,7 +654,7 @@ namespace API.Controllers
             });
         }
 
-        /// GET /api/sorting/bookings/roomType/Standard?page=1&pageSize=10&sortBy=startTime
+        /// GET /api/bookings/bookings/roomType/Standard?page=1&pageSize=10&sortBy=startTime
         [HttpGet("bookings/roomType/{roomType}")]
         [Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsByRoomType(
@@ -856,7 +708,7 @@ namespace API.Controllers
 
         // ============ USER-SPECIFIC ENDPOINT ============
 
-        /// GET /api/sorting/my-bookings?page=1&pageSize=10&sortBy=startTime
+        /// GET /api/bookings/my-bookings?page=1&pageSize=10&sortBy=startTime
         [HttpGet("my-bookings")]
         [Authorize(Roles = "Employee")]
         public async Task<IActionResult> GetMyBookings(
@@ -905,265 +757,5 @@ namespace API.Controllers
                 data = results
             });
         }
-
-        // ============ ROOM ENDPOINTS ============
-
-        /// GET /api/sorting/rooms/name?page=1&pageSize=10
-        [HttpGet("rooms/name")]
-        [Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
-        public async Task<IActionResult> GetRoomsSortedByName(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10)
-        {
-            var query = _context.ConferenceRooms
-                .Where(r => r.IsActive)
-                .AsNoTracking();
-
-            query = query.OrderBy(r => r.Name);
-            
-            var totalCount = await query.CountAsync();
-
-            var results = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(r => new RoomListDto
-                {
-                    Id = r.Id,
-                    Name = r.Name,
-                    Capacity = r.Capacity,
-                    Location = r.Location,
-                    Type = r.Type.ToString(),
-                    IsActive = r.IsActive
-                })
-                .ToListAsync();
-
-            return Ok(new
-            {
-                totalCount,
-                page,
-                pageSize,
-                data = results
-            });
-        }
-
-        /// GET /api/sorting/rooms/capacity?page=1&pageSize=10&sortBy=capacity
-        [HttpGet("rooms/capacity")]
-        [Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
-        public async Task<IActionResult> GetRoomsSortedByCapacity(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string? sortBy = null)
-        {
-            var query = _context.ConferenceRooms
-                .Where(r => r.IsActive)
-                .AsNoTracking();
-
-            if (sortBy == "capacity")
-            {
-                query = query.OrderBy(r => r.Capacity);
-            }
-            else
-            {
-                query = query.OrderByDescending(r => r.Capacity);
-            }
-
-            var totalCount = await query.CountAsync();
-
-            var results = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(r => new RoomListDto
-                {
-                    Id = r.Id,
-                    Name = r.Name,
-                    Capacity = r.Capacity,
-                    Location = r.Location,
-                    Type = r.Type.ToString(),
-                    IsActive = r.IsActive
-                })
-                .ToListAsync();
-
-            return Ok(new
-            {
-                totalCount,
-                page,
-                pageSize,
-                sortBy = sortBy ?? "name_asc",
-                data = results
-            });
-        }
-
-        /// GET /api/sorting/rooms/location/Cape Town?page=1&pageSize=10
-        [HttpGet("rooms/location/{location}")]
-        [Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
-        public async Task<IActionResult> GetRoomsByLocation(
-            string location,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10)
-        {
-            var query = _context.ConferenceRooms
-                .Where(r => r.IsActive && r.Location.Contains(location))
-                .AsNoTracking();
-    
-            query = query.OrderBy(r => r.Name);
-       
-            var totalCount = await query.CountAsync();
-
-            var results = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(r => new RoomListDto
-                {
-                    Id = r.Id,
-                    Name = r.Name,
-                    Capacity = r.Capacity,
-                    Location = r.Location,
-                    Type = r.Type.ToString(),
-                    IsActive = r.IsActive
-                })
-                .ToListAsync();
-
-            return Ok(new
-            {
-                totalCount,
-                page,
-                pageSize,
-                data = results
-            });
-        }
-
-        /// GET /api/sorting/rooms/type/Boardroom?page=1&pageSize=10&sortBy=name
-        [HttpGet("rooms/type/{type}")]
-        [Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
-        public async Task<IActionResult> GetRoomsByType(
-            string type,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string? sortBy = null)
-        {
-            if (!Enum.TryParse<RoomType>(type, true, out var roomType))
-            {
-                return BadRequest($"Invalid room type: {type}. Valid values: Standard, Boardroom, Training");
-            }
-            
-            var query = _context.ConferenceRooms
-                .Where(r => r.IsActive && r.Type == roomType)
-                .AsNoTracking();
-
-            if (sortBy == "name")
-            {
-                query = query.OrderBy(r => r.Name);
-            }
-            else
-            {
-                query = query.OrderByDescending(r => r.Name);
-            }
-
-            var totalCount = await query.CountAsync();
-
-            var results = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(r => new RoomListDto
-                {
-                    Id = r.Id,
-                    Name = r.Name,
-                    Capacity = r.Capacity,
-                    Location = r.Location,
-                    Type = r.Type.ToString(),
-                    IsActive = r.IsActive
-                })
-                .ToListAsync();
-
-            return Ok(new
-            {
-                totalCount,
-                page,
-                pageSize,
-                sortBy = sortBy ?? "IsActive",
-                data = results
-            });
-        }
-
-        /// <summary>
-        /// GET /api/sorting/rooms/active?page=1&pageSize=10
-        /// Get only active rooms (IsActive = true)
-        /// </summary>
-        [HttpGet("rooms/Isactive")]
-        [Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
-        public async Task<IActionResult> GetActiveRooms(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10)
-        {
-            var query = _context.ConferenceRooms
-                .Where(r => r.IsActive == true)  // Filter for active rooms only
-                .OrderBy(r => r.Name)            // Default sort by name
-                .AsNoTracking();
-
-            var totalCount = await query.CountAsync();
-
-            var results = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(r => new RoomListDto
-                {
-                    Id = r.Id,
-                    Name = r.Name,
-                    Capacity = r.Capacity,
-                    Location = r.Location,
-                    Type = r.Type.ToString(),
-                    IsActive = r.IsActive
-                })
-                .ToListAsync();
-
-            return Ok(new
-            {
-                totalCount,
-                page,
-                pageSize,
-                data = results
-            });
-        }
-
-        /// <summary>
-        /// GET /api/sorting/rooms/active?page=1&pageSize=10
-        /// Get only inactive rooms (IsActive = false)
-        /// </summary>
-        [HttpGet("rooms/isinactive")]
-        [Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
-        public async Task<IActionResult> GetInActiveRooms(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10)
-        {
-            var query = _context.ConferenceRooms
-                .Where(r => r.IsActive == false)  // Filter for inactive rooms only
-                .OrderBy(r => r.Name)            // Default sort by name
-                .AsNoTracking();
-
-            var totalCount = await query.CountAsync();
-
-            var results = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(r => new RoomListDto
-                {
-                    Id = r.Id,
-                    Name = r.Name,
-                    Capacity = r.Capacity,
-                    Location = r.Location,
-                    Type = r.Type.ToString(),
-                    IsActive = r.IsActive
-                })
-                .ToListAsync();
-
-            return Ok(new
-            {
-                totalCount,
-                page,
-                pageSize,
-                data = results
-            });
-        }
-
     }
 }

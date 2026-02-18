@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Button from "./Button";
+import '../App.css';
 
 function BookingForm({ onAddBooking }) {
 
@@ -7,7 +8,7 @@ function BookingForm({ onAddBooking }) {
     const [date, setDate] = useState(new Date());
     const [startTime, setStartTime] = useState("");
     const [endTime, setEndTime] = useState("");
-    const [location, setLocation] = useState("");
+    const [location, setLocation] = useState("Bloemfontein");
     const [bookedBy, setBookedBy] = useState("");
 
     const formatDateForInput = (dateObject) => {
@@ -56,7 +57,48 @@ function BookingForm({ onAddBooking }) {
                 placeholder="Room Name"
                 value={roomName}
                 onChange={(e) => setName(e.target.value)}
+                required
             />
-        </form>
+
+            <input 
+                type="date" 
+                value={formatDateForInput(date)}
+                onChange={(e) => setDate(new Date(e.target.value))}
+                required
+            />
+
+            <label>Start Time:</label>
+            <input 
+                type="time" 
+                value={startTime}
+                onChange={handleStart}
+                required
+            />
+
+            <label>End Time:</label>
+            <input 
+                type="time" 
+                value={endTime}
+                onChange={handleEnd}
+                required
+            />
+
+            <select value={location} onChange={(e) => setLocation(e.target.value)}>
+                <option value="Bloemfontein">Bloemfontein</option>
+                <option value="Cape Town">Cape Town</option>
+            </select>
+
+            <input
+                type="text"
+                value={bookedBy}
+                onChange={(e) => setBookedBy(e.target.value)}
+                placeholder="Booked By"
+                required
+            />
+
+            <Button label="Book Room"/>
+        </form>      
     );
 }
+
+export default BookingForm;

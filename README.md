@@ -143,6 +143,12 @@ Validation
 - Added a Serialization method to download bookings that were made
 - Added a Deserialization method to load bookings from an external json file
 
+### UseState vs App Component
+The form component functions like a draft for all the information 
+filled in and doesn't update the state until the book room button has been clicked.
+The app component works on a much larger scale so if any errors 
+were to exist, it would be more difficult to find the problem to fix because you'd have to search through the whole app to fix it. 
+
 ---
 
 # API Querying, Filtering & Pagination

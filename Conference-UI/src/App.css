@@ -60,6 +60,133 @@ body {
   transform: translateY(-2px);
 }
 
+.booking-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    display: grid;
+    gap: 1rem;
+    max-width: 500px;
+    margin: 0 auto 2rem;
+}
+
+.booking-form input,
+.booking-form select {
+    padding: 0.75rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.booking-form input:focus,
+.booking-form select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.booking-form label {
+    font-weight: 600;
+    color: #444;
+    margin-top: 0.5rem;
+}
+
+.booking-form label:first-of-type {
+    margin-top: 0;
+}
+
+.booking-form button {
+    margin-top: 1rem;
+    width: 100%;
+}
+
+.main-content p {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #667eea;
+    text-align: center;
+    margin: 1rem 0;
+}
+
+/* Add to src/components/Components.css */
+
+.booking-wrapper {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    position: relative;
+}
+
+.booking-wrapper:hover {
+    transform: translateX(5px);
+}
+
+.booking-wrapper.selected {
+    border: 2px solid #667eea;
+    background-color: rgba(102, 126, 234, 0.05);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+/* Optional: Add a checkmark indicator for selected card */
+.booking-wrapper.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #667eea;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.selected-info {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    text-align: center;
+    font-weight: 600;
+}
+
+/* Update existing booking-list to remove extra margin */
+.booking-list {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.booking-list h2 {
+    color: #444;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    border-bottom: 3px solid #667eea;
+    padding-bottom: 0.5rem;
+    display: inline-block;
+}
+
+/* Adjust booking card for new wrapper */
+.booking-card {
+    margin: 0; /* Remove margin since wrapper handles spacing */
+}
+
+/* Remove old cancel button styles if they exist */
+.cancel-btn {
+    display: none;
+}
+
 .booking-list {
   background: white;
   border-radius: 12px;

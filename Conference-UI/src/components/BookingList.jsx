@@ -1,5 +1,6 @@
 import BookingCard from './BookingCard';
 import '../App.css';
+import { fetchAllBookings } from '../Services/bookingService';
 
 function BookingList({ bookings, selectedBookingId, onSelectBooking }) {
     return (

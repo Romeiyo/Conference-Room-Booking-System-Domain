@@ -149,6 +149,9 @@ filled in and doesn't update the state until the book room button has been click
 The app component works on a much larger scale so if any errors 
 were to exist, it would be more difficult to find the problem to fix because you'd have to search through the whole app to fix it. 
 
+### CloudFlare Incident
+The CloudFlare Incident happened because their `useEffect` was updating a piece of state that was also being used to create a new object in the dependency array, My `useEffect` is watching `bookings` and `categoryFilter` and what I'm updating is my `filteredBookings`, because `setFilteredBookings` doesn't change the `bookings` array, the loop is avoided.
+
 ---
 
 # API Querying, Filtering & Pagination

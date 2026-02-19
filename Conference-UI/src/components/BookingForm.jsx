@@ -52,52 +52,89 @@ function BookingForm({ onAddBooking }) {
 
     return (
         <form className="booking-form" onSubmit={handleSubmit}>
-            <input
-                type = "text"
-                placeholder="Room Name"
-                value={roomName}
-                onChange={(e) => setName(e.target.value)}
-                required
-            />
+            <h3 style={{ marginBottom: '1.5rem', color: '#444', borderBottom: '2px solid #667eea', paddingBottom: '0.5rem' }}>
+                Book a New Room
+            </h3>
 
-            <input 
-                type="date" 
-                value={formatDateForInput(date)}
-                onChange={(e) => setDate(new Date(e.target.value))}
-                required
-            />
+            <div className="form-row">
+                <label>Room Name:</label>
+                <select 
+                    id="roomName"
+                    value={roomName} 
+                    onChange={(e) => setName(e.target.value)}
+                >
+                    <option value="Room A">Room A</option>
+                    <option value="Room B">Room B</option>
+                    <option value="Room C">Room C</option>
+                    <option value="Room D">Room D</option>
+                    <option value="Room E">Room E</option>
+                    <option value="Room F">Room F</option>
+                    <option value="Room G">Room G</option>
+                    
+                </select>
+            </div>
 
-            <label>Start Time:</label>
-            <input 
-                type="time" 
-                value={startTime}
-                onChange={handleStart}
-                required
-            />
+            <div className="form-row">
+                <label>Date:</label>
+                <input 
+                    id="date"
+                    type="date" 
+                    value={formatDateForInput(date)}
+                    onChange={(e) => setDate(new Date(e.target.value))}
+                    required
+                />
+            </div>
 
-            <label>End Time:</label>
-            <input 
-                type="time" 
-                value={endTime}
-                onChange={handleEnd}
-                required
-            />
+            <div className="form-row">
+                <label>Start Time:</label>
+                <input 
+                    id="startTime"
+                    type="time" 
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    required
+                />
+            </div>
 
-            <select value={location} onChange={(e) => setLocation(e.target.value)}>
-                <option value="Bloemfontein">Bloemfontein</option>
-                <option value="Cape Town">Cape Town</option>
-            </select>
+            <div className="form-row">
+                <label>End Time:</label>
+                <input 
+                    id="endTime"
+                    type="time" 
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    required
+                />
+            </div>
 
-            <input
-                type="text"
-                value={bookedBy}
-                onChange={(e) => setBookedBy(e.target.value)}
-                placeholder="Booked By"
-                required
-            />
+            <div className="form-row">
+                <label>Location:</label>
+                <select 
+                    id="location"
+                    value={location} 
+                    onChange={(e) => setLocation(e.target.value)}
+                >
+                    <option value="Bloemfontein">Bloemfontein</option>
+                    <option value="Cape Town">Cape Town</option>
+                </select>
+            </div>
 
-            <Button label="Book Room"/>
-        </form>      
+            <div className="form-row">
+                <label>Booked By:</label>
+                <input
+                    id="bookedBy"
+                    type="text"
+                    value={bookedBy}
+                    onChange={(e) => setBookedBy(e.target.value)}
+                    placeholder="Enter your name"
+                    required
+                />
+            </div>
+
+            <div className="form-row">
+                <Button label="Book Room"/>
+            </div>
+        </form>       
     );
 }
 

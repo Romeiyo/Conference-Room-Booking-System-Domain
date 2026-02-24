@@ -445,7 +445,6 @@ body {
     }
 }
 
-/* Add at the end of your App.css file */
 
 .error-banner {
   animation: slideDown 0.3s ease-out;

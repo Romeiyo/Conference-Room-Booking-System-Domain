@@ -14,3 +14,7 @@ API/obj/
 *.suo
 *.userosscache
 *.sln.docstates
+
+# Environment variables
+.env
+.env.local

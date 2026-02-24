@@ -37,18 +37,36 @@ namespace ConferenceRoomBookingSystem
 
             List<Booking> Bookings = new List<Booking>()
             {
-                new Booking(rooms[0], 2, new DateTime(2026, 02, 10, 9, 0, 0), new DateTime(2026, 02, 10, 10, 0, 0))
+                new Booking(rooms[0], 1, new DateTime(2026, 02, 20, 9, 0, 0, DateTimeKind.Utc), new DateTime(2026, 02, 20, 10, 0, 0, DateTimeKind.Utc))
                 {
                     Id = 1,
-                    CreatedAt = new DateTime(2026, 01, 15, 12, 0, 0)
+                    CreatedAt = new DateTime(2026, 01, 20, 12, 0, 0, DateTimeKind.Utc)
                 },
 
-                new Booking(rooms[1], 3, new DateTime(2026, 02, 11, 14, 0, 0), new DateTime(2026, 02, 11, 15, 30, 0))
+                new Booking(rooms[0], 2, new DateTime(2026, 02, 10, 9, 0, 0, DateTimeKind.Utc), new DateTime(2026, 02, 10, 10, 0, 0, DateTimeKind.Utc))
                 {
                     Id = 2,
+                    CreatedAt = new DateTime(2026, 01, 15, 12, 0, 0, DateTimeKind.Utc)
+                },
+
+                new Booking(rooms[1], 3, new DateTime(2026, 02, 11, 14, 0, 0, DateTimeKind.Utc), new DateTime(2026, 02, 11, 15, 30, 0, DateTimeKind.Utc))
+                {
+                    Id = 3,
                     Status = BookingStatus.Cancelled,
-                    CreatedAt = new DateTime(2026, 01, 20, 9, 30, 0),
-                    CancelledAt = new DateTime(2026, 01, 25, 10, 0, 0)
+                    CreatedAt = new DateTime(2026, 01, 20, 9, 30, 0, DateTimeKind.Utc),
+                    CancelledAt = new DateTime(2026, 01, 25, 10, 0, 0, DateTimeKind.Utc)
+                },
+
+                new Booking(rooms[1], 4, new DateTime(2026, 02, 09, 9, 0, 0, DateTimeKind.Utc), new DateTime(2026, 02, 09, 10, 0, 0, DateTimeKind.Utc))
+                {
+                    Id = 4,
+                    CreatedAt = new DateTime(2026, 01, 16, 12, 0, 0, DateTimeKind.Utc)
+                },
+
+                new Booking(rooms[2], 5, new DateTime(2026, 02, 10, 9, 0, 0, DateTimeKind.Utc), new DateTime(2026, 02, 10, 10, 0, 0, DateTimeKind.Utc))
+                {
+                    Id = 5,
+                    CreatedAt = new DateTime(2026, 01, 15, 12, 0, 0, DateTimeKind.Utc)
                 },
             };
             return Bookings;

@@ -52,22 +52,13 @@ export const bookingService = {
         }
     },
 
-    // Get rooms from real API
-    async getRooms() {
-        try { 
-            return await apiClient.get('/room/rooms/name');
-        } catch (error) {
-            console.error('Error fetching rooms:', error);
-            throw error;
-        }
-    },
 
     // Create new booking in real API
     async createBooking(bookingData) {
         try {
             // Transforming the booking data to match API expectations
             const apiBookingData = {
-                room: { id: parseInt(bookingData.roomId) || 1 }, // Need roomId from somewhere
+                room: { id: parseInt(bookingData.roomId) || 1 }, 
                 startTime: new Date(`${bookingData.date}T${bookingData.startTime}`).toISOString(),
                 endTime: new Date(`${bookingData.date}T${bookingData.endTime}`).toISOString()
             };

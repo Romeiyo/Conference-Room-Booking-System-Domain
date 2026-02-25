@@ -19,6 +19,7 @@ apiClient.interceptors.request.use(
   (config) => {
     //outgoing request logged
     console.log(`Sending ${config.method.toUpperCase()} to ${config.url}`);
+    
     //adding my auth token
     const token = localStorage.getItem('token');
     if (token) {
@@ -32,7 +33,9 @@ apiClient.interceptors.request.use(
 
 // Response interceptor for error handling
 apiClient.interceptors.response.use(
-  (response) => response.data,
+  (response) => {
+    return response.data;
+  },
   (error) => {
     if (axios.isCancel(error)) {
         // Log cancelled requests but don't treat as error

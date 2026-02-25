@@ -67,7 +67,7 @@ export function useBookings() {
   // Initial fetch
   useEffect(() => {
     const controller = new AbortController();
-    const {signal} = controller
+    const {signal} = controller;
     fetchBookings(signal);
 
     return() => {

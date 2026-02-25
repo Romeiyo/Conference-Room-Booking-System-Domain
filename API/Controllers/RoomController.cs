@@ -8,7 +8,7 @@ namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    //[Authorize]
     public class RoomController : ControllerBase
     {
         private readonly BookingsDbContext _context;
@@ -20,7 +20,7 @@ namespace API.Controllers
 
         /// GET /api/rooms/rooms/name?page=1&pageSize=10
         [HttpGet("rooms/name")]
-        [Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
+        //[Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
         public async Task<IActionResult> GetRoomsSortedByName(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
@@ -58,7 +58,7 @@ namespace API.Controllers
 
         /// GET /api/rooms/rooms/capacity?page=1&pageSize=10&sortBy=capacity
         [HttpGet("rooms/capacity")]
-        [Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
+        //[Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
         public async Task<IActionResult> GetRoomsSortedByCapacity(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
@@ -105,7 +105,7 @@ namespace API.Controllers
 
         /// GET /api/rooms/rooms/location/Cape Town?page=1&pageSize=10
         [HttpGet("rooms/location/{location}")]
-        [Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
+        //[Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
         public async Task<IActionResult> GetRoomsByLocation(
             string location,
             [FromQuery] int page = 1,
@@ -144,7 +144,7 @@ namespace API.Controllers
 
         /// GET /api/rooms/rooms/type/Boardroom?page=1&pageSize=10&sortBy=name
         [HttpGet("rooms/type/{type}")]
-        [Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
+        //[Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
         public async Task<IActionResult> GetRoomsByType(
             string type,
             [FromQuery] int page = 1,
@@ -197,7 +197,7 @@ namespace API.Controllers
 
         /// GET /api/rooms/rooms/active?page=1&pageSize=10&showActive=true
         [HttpGet("rooms/active")]
-        [Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
+        //[Authorize(Roles = "Admin,Receptionist,Employee,Facility Manager")]
         public async Task<IActionResult> GetActiveRooms(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,

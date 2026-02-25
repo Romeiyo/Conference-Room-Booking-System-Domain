@@ -10,7 +10,7 @@ namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    //[Authorize]
     public class BookingController : ControllerBase
     {
         private readonly IBookingRepository _bookingRepository;
@@ -26,21 +26,44 @@ namespace API.Controllers
             _context = context;
         }
 
+        // private IQueryable<Booking> GetBaseBookingQuery()
+        // {
+        //     var userId = GetCurrentUserId();
+        //     var isAdmin = User.IsInRole("Admin") || User.IsInRole("Receptionist");
+
+        //     var query = _context.Bookings
+        //         .Include(b => b.Room)
+        //         .Where(b => b.Status != BookingStatus.Cancelled)
+        //         .AsNoTracking();
+
+        //     if (!isAdmin)
+        //     {
+        //         query = query.Where(b => b.UserId == userId);
+        //     }
+
+        //     return query;
+        // }
         private IQueryable<Booking> GetBaseBookingQuery()
         {
-            var userId = GetCurrentUserId();
-            var isAdmin = User.IsInRole("Admin") || User.IsInRole("Receptionist");
-
             var query = _context.Bookings
                 .Include(b => b.Room)
                 .Where(b => b.Status != BookingStatus.Cancelled)
                 .AsNoTracking();
-
-            if (!isAdmin)
+        
+            // Only filter by user if we have a valid authenticated user
+            var username = User.FindFirst(ClaimTypes.Name)?.Value;
+            if (!string.IsNullOrEmpty(username))
             {
-                query = query.Where(b => b.UserId == userId);
+                var userId = GetCurrentUserId();
+                var isAdmin = User.IsInRole("Admin") || User.IsInRole("Receptionist");
+                
+                if (!isAdmin)
+                {
+                    query = query.Where(b => b.UserId == userId);
+                }
             }
-
+            // No username = not authenticated = show all bookings
+        
             return query;
         }
 
@@ -48,13 +71,17 @@ namespace API.Controllers
         {
             var username = User.FindFirst(ClaimTypes.Name)?.Value;
             if (string.IsNullOrEmpty(username))
-                throw new UnauthorizedAccessException("Username not found in token");
+            {
+                //throw new UnauthorizedAccessException("Username not found in token");
+                return 1;
+            }
+                
             
             return _userService.GetIntegerUserId(username);
         }
 
         [HttpPost]
-        [Authorize(Roles = "Employee,Receptionist")]
+        //[Authorize(Roles = "Employee,Receptionist")]
         public async Task<IActionResult> CreateBooking([FromBody] BookingRequestDto bookingDto)
         {
 
@@ -99,14 +126,14 @@ namespace API.Controllers
         }
 
         [HttpGet("maintenance")]
-        [Authorize(Roles = "Facility Manager")]
+        //[Authorize(Roles = "Facility Manager")]
         public IActionResult GetMaintenanceInfo()
         {
             return Ok("Accessing maintenance booking");
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin,Employee")]
+        //[Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> CancelBooking(int id)
         {
             //Get the booking by id
@@ -189,7 +216,7 @@ namespace API.Controllers
 
         /// GET /api/bookings/bookings/startTime?page=1&pageSize=10&sortBy=startTime
         [HttpGet("bookings/startTime")]
-        [Authorize(Roles = "Admin,Receptionist,Employee")]
+        //[Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsSortedByStartTime(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
@@ -234,7 +261,7 @@ namespace API.Controllers
 
         /// GET /api/bookings/bookings/status/Cancelled?page=1&pageSize=10&sortBy
         [HttpGet("bookings/status/Cancelled")]
-        [Authorize(Roles = "Admin,Receptionist,Employee")]
+        //[Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetCancelledBookings(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
@@ -271,7 +298,7 @@ namespace API.Controllers
 
         /// GET /api/bookings/bookings/createdAt?page=1&pageSize=10&sortBy=createdAt
         [HttpGet("bookings/createdAt")]
-        [Authorize(Roles = "Admin,Receptionist,Employee")]
+        //[Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsSortedByCreatedDate(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
@@ -316,7 +343,7 @@ namespace API.Controllers
 
         /// GET /api/bookings/bookings/capacity?page=1&pageSize=10&sortBy=capacity
         [HttpGet("bookings/capacity")]
-        [Authorize(Roles = "Admin,Receptionist,Employee")]
+        //[Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsSortedByCapacity(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
@@ -362,7 +389,7 @@ namespace API.Controllers
         // ============ BOOKING FILTERING ENDPOINTS ============
         /// GET /api/bookings/bookings/location/Bloemfontein?page=1&pageSize=10&sortBy=startTime
         [HttpGet("bookings/location/{location}")]
-        [Authorize(Roles = "Admin,Receptionist,Employee")]
+        //[Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsByLocation(
             string location,
             [FromQuery] int page = 1,
@@ -409,7 +436,7 @@ namespace API.Controllers
 
         /// GET /api/bookings/bookings/room/5?page=1&pageSize=10&sortBy=startTime
         [HttpGet("bookings/room/{roomId}")]
-        [Authorize(Roles = "Admin,Receptionist,Employee")]
+        //[Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsByRoomId(
             int roomId,
             [FromQuery] int page = 1,
@@ -456,7 +483,7 @@ namespace API.Controllers
 
         /// GET /api/bookings/bookings/date/2026/02/15?page=1&pageSize=10&sortBy=startTime
         [HttpGet("bookings/date/{year}/{month}/{day}")]
-        [Authorize(Roles = "Admin,Receptionist,Employee")]
+        //[Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsByDate(
             int year, int month, int day,
             [FromQuery] int page = 1,
@@ -506,7 +533,7 @@ namespace API.Controllers
 
         /// GET /api/bookings/bookings/date-range/2026-02-01/2026-02-28?page=1&pageSize=10&sortBy=startTime
         [HttpGet("bookings/date-range/{from}/{to}")]
-        [Authorize(Roles = "Admin,Receptionist,Employee")]
+        //[Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsByDateRange(
             DateTime from, DateTime to,
             [FromQuery] int page = 1,
@@ -555,7 +582,7 @@ namespace API.Controllers
 
         /// GET /api/bookings/bookings/status/Confirmed?page=1&pageSize=10&sortBy=startTime
         [HttpGet("bookings/status/{status}")]
-        [Authorize(Roles = "Admin,Receptionist,Employee")]
+        //[Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsByStatus(
             string status,
             [FromQuery] int page = 1,
@@ -607,7 +634,7 @@ namespace API.Controllers
 
         /// GET /api/bookings/bookings/user/2?page=1&pageSize=10&sortBy=startTime
         [HttpGet("bookings/user/{userId}")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetBookingsByUserId(
             int userId,
             [FromQuery] int page = 1,
@@ -656,7 +683,7 @@ namespace API.Controllers
 
         /// GET /api/bookings/bookings/roomType/Standard?page=1&pageSize=10&sortBy=startTime
         [HttpGet("bookings/roomType/{roomType}")]
-        [Authorize(Roles = "Admin,Receptionist,Employee")]
+        //[Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsByRoomType(
             string roomType,
             [FromQuery] int page = 1,
@@ -710,7 +737,7 @@ namespace API.Controllers
 
         /// GET /api/bookings/my-bookings?page=1&pageSize=10&sortBy=startTime
         [HttpGet("my-bookings")]
-        [Authorize(Roles = "Employee")]
+        //[Authorize(Roles = "Employee")]
         public async Task<IActionResult> GetMyBookings(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,

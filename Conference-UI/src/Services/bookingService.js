@@ -1,4 +1,4 @@
-import apiClient from "./api";
+import apiClient from "../api/apiClient";
 import initialBookings from "../mockData";
 
 export const fetchAllBookings = () => {
@@ -23,15 +23,17 @@ export const bookingService = {
     // Get bookings from real API
     async getBookings() {
         try {
-            const response = await apiClient.get('/booking/bookings/roomName');
-            if (response.data && response.data.data) {
-                return response.data.data;
+            
+            const data = await apiClient.get('/booking/bookings/roomName');
+            
+            if (data && data.data) {
+                return data.data;
             }
-            else if (Array.isArray(response.data)) {
-                return response.data;
+            else if (Array.isArray(data)) {
+                return data;
             }
             else {
-                console.warn('Unexpected API response format:', response.data);
+                console.warn('Unexpected API response format:', data);
                 return [];
             }
         } catch (error) {
@@ -43,8 +45,7 @@ export const bookingService = {
     // Get booking by ID
     async getBookingById(bookingId) {
         try {
-            const response = await apiClient.get(`/bookings/${bookingId}`);
-            return response.data;
+            return apiClient.get(`/bookings/${bookingId}`);
         } catch (error) {
             console.error('Error fetching booking:', error);
             throw error;
@@ -53,9 +54,8 @@ export const bookingService = {
 
     // Get rooms from real API
     async getRooms() {
-        try {
-            const response = await apiClient.get('/rooms');
-            return response.data;
+        try { 
+            return await apiClient.get('/room/rooms/name');
         } catch (error) {
             console.error('Error fetching rooms:', error);
             throw error;
@@ -65,8 +65,14 @@ export const bookingService = {
     // Create new booking in real API
     async createBooking(bookingData) {
         try {
-            const response = await apiClient.post('/bookings', bookingData);
-            return response.data;
+            // Transforming the booking data to match API expectations
+            const apiBookingData = {
+                room: { id: parseInt(bookingData.roomId) || 1 }, // Need roomId from somewhere
+                startTime: new Date(`${bookingData.date}T${bookingData.startTime}`).toISOString(),
+                endTime: new Date(`${bookingData.date}T${bookingData.endTime}`).toISOString()
+            };
+            
+            return await apiClient.post('/booking', apiBookingData);
         } catch (error) {
             console.error('Error creating booking:', error);
             throw error;
@@ -76,8 +82,7 @@ export const bookingService = {
     // Cancel a booking
     async cancelBooking(bookingId) {
         try {
-            const response = await apiClient.delete(`/bookings/${bookingId}`);
-            return response.data;
+            return await apiClient.delete(`/bookings/${bookingId}`);
         } catch (error) {
             console.error('Error cancelling booking:', error);
             throw error;
@@ -87,8 +92,8 @@ export const bookingService = {
     // Get cancelled bookings from real API
     async getCancelledBooking() {
         try {
-            const response = await apiClient.get('/bookings/status/Cancelled');
-            return response.data;
+            const data = await apiClient.get('/bookings/status/Cancelled');
+            return data;
         } catch (error) {
             console.error('Error fetching cancelled bookings:', error);
             throw error;
@@ -98,10 +103,9 @@ export const bookingService = {
     // Get bookings by location
     async getBookingsByLocation(location, page = 1, pageSize = 10) {
         try {
-            const response = await apiClient.get(`/bookings/location/${location}`, {
+            return await apiClient.get(`/bookings/location/${location}`, {
                 params: { page, pageSize }
             });
-            return response.data;
         } catch (error) {
             console.error('Error fetching bookings by location:', error);
             throw error;
@@ -111,10 +115,45 @@ export const bookingService = {
     // Get bookings by date
     async getBookingsByDate(year, month, day) {
         try {
-            const response = await apiClient.get(`/bookings/date/${year}/${month}/${day}`);
-            return response.data;
+            return await apiClient.get(`/bookings/date/${year}/${month}/${day}`);
         } catch (error) {
             console.error('Error fetching bookings by date:', error);
+            throw error;
+        }
+    },
+
+    // Get bookings by room type
+    async getBookingsByRoomType(roomType, page = 1, pageSize = 10) {
+        try {
+            return await apiClient.get(`/booking/bookings/roomType/${roomType}`, {
+                params: { page, pageSize }
+            });
+        } catch (error) {
+            console.error('Error fetching bookings by room type:', error);
+            throw error;
+        }
+    },
+
+    // Get bookings by status
+    async getBookingsByStatus(status, page = 1, pageSize = 10) {
+        try {
+            return await apiClient.get(`/booking/bookings/status/${status}`, {
+                params: { page, pageSize }
+            });
+        } catch (error) {
+            console.error('Error fetching bookings by status:', error);
+            throw error;
+        }
+    },
+
+    // Get my bookings (for current user)
+    async getMyBookings(page = 1, pageSize = 10) {
+        try {
+            return await apiClient.get('/booking/my-bookings', {
+                params: { page, pageSize }
+            });
+        } catch (error) {
+            console.error('Error fetching my bookings:', error);
             throw error;
         }
     }

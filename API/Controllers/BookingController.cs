@@ -142,9 +142,9 @@ namespace API.Controllers
         }
 
         // ============ BOOKING SORTING ENDPOINTS ============
-        /// GET /api/bookings/bookings/roomName?page=1&pageSize=10&sortBy=roomName
+        /// GET /api/booking/bookings/roomName?page=1&pageSize=10&sortBy=roomName
         [HttpGet("bookings/roomName")]
-        [Authorize(Roles = "Admin,Receptionist,Employee")]
+        //[Authorize(Roles = "Admin,Receptionist,Employee")]
         public async Task<IActionResult> GetBookingsSortedByRoomName(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,

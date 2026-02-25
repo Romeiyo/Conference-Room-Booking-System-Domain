@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { bookingService } from '../Services/bookingService';
-import { fetchAllBookings } from '../Services/bookingService';
+import { bookingService, fetchAllBookings } from '../Services/bookingService';
+import axios from 'axios';
 
 export function useBookings() {
   const [bookings, setBookings] = useState([]);
@@ -12,16 +12,37 @@ export function useBookings() {
   const [retryCount, setRetryCount] = useState(0);
 
   // Fetch bookings from API
-  const fetchBookings = useCallback(async () => {
+  const fetchBookings = useCallback(async (signal) => {
     try {
       setIsLoading(true);
       setError(null);
       
       // Try to get from real API first
       try {
-        const data = await bookingService.getBookings();
+        const data = await bookingService.getBookings({signal});
         setBookings(data);
       } catch (apiError) {
+
+        // Check if this was a cancellation
+        if (axios.isCancel(apiError)) {
+          console.log('Fetch cancelled:', apiError.message);
+          return; // Silently ignore cancellations
+        }
+        
+        // Handle specific error types
+        if (apiError.code === 'ECONNABORTED') {
+          throw new Error('Request timeout - server took too long to respond. Please try again.');
+        }
+        
+        if (apiError.message === 'Network Error') {
+          throw new Error('Network error - unable to reach the server. Please check your connection.');
+        }
+        
+        if (apiError.response) {
+          // Server responded with error status
+          throw new Error(`Server error (${apiError.response.status}): ${apiError.response.data?.message || 'Something went wrong'}`);
+        }
+
         console.warn('API failed, falling back to mock data:', apiError);
         
         // Fallback to mock data simulation
@@ -45,7 +66,13 @@ export function useBookings() {
 
   // Initial fetch
   useEffect(() => {
-    fetchBookings();
+    const controller = new AbortController();
+    const {signal} = controller
+    fetchBookings(signal);
+
+    return() => {
+        controller.abort('Component unmounted - request cancelled');
+    }
   }, [fetchBookings, retryCount]);
 
   // Filter bookings when category or bookings change
@@ -80,6 +107,23 @@ export function useBookings() {
           status: 'Confirmed'
         });
       } catch (apiError) {
+         // Handle specific API errors
+        if (axios.isCancel(apiError)) {
+          return; // Silently ignore cancellations
+        }
+        
+        if (apiError.code === 'ECONNABORTED') {
+          throw new Error('Request timeout - server took too long to respond. Please try again.');
+        }
+        
+        if (apiError.message === 'Network Error') {
+          throw new Error('Network error - unable to reach the server. Please check your connection.');
+        }
+        
+        if (apiError.response?.status === 409) {
+          throw new Error('Booking conflict - this time slot is already taken.');
+        }
+
         console.warn('API create failed, using local creation:', apiError);
         
         // Fallback: create locally
@@ -120,6 +164,19 @@ export function useBookings() {
         try {
           await bookingService.cancelBooking?.(selectedBookingId);
         } catch (apiError) {
+            // Handle specific API errors
+          if (axios.isCancel(apiError)) {
+            return false;
+          }
+          
+          if (apiError.code === 'ECONNABORTED') {
+            throw new Error('Request timeout - server took too long to respond.');
+          }
+          
+          if (apiError.message === 'Network Error') {
+            throw new Error('Network error - unable to reach the server.');
+          }
+
           console.warn('API cancel failed, using local cancellation:', apiError);
         }
         
@@ -149,6 +206,19 @@ export function useBookings() {
         try {
           await bookingService.cancelBooking?.(bookingId);
         } catch (apiError) {
+            // Handle specific API errors
+          if (axios.isCancel(apiError)) {
+            return false;
+          }
+          
+          if (apiError.code === 'ECONNABORTED') {
+            throw new Error('Request timeout - server took too long to respond.');
+          }
+          
+          if (apiError.message === 'Network Error') {
+            throw new Error('Network error - unable to reach the server.');
+          }
+          
           console.warn('API cancel failed, using local cancellation:', apiError);
         }
         

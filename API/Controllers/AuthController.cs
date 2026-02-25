@@ -37,7 +37,7 @@ namespace ConferenceRoomBookingSystem
         }
 
         [HttpGet("test")]
-        [Authorize]
+        //[Authorize]
         public IActionResult TestAuth()
         {
             return Ok(new { 

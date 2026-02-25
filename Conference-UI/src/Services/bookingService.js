@@ -1,11 +1,39 @@
 import apiClient from "./api";
+import initialBookings from "../mockData";
+
+export const fetchAllBookings = () => {
+    return new Promise((resolve, reject) => {
+    
+    const delay = Math.random() * 2000 + 500;
+
+    const shouldFail = Math.random() < 0.2;
+
+    setTimeout(() => {
+        if(shouldFail){
+            reject(new Error('Failed to fetch bookings'));
+        }
+        else{
+            resolve(initialBookings);
+        }
+    }, delay);
+  });
+};
 
 export const bookingService = {
     // Get bookings from real API
     async getBookings() {
         try {
-            const response = await apiClient.get('/bookings');
-            return response.data;
+            const response = await apiClient.get('/booking/bookings/roomName');
+            if (response.data && response.data.data) {
+                return response.data.data;
+            }
+            else if (Array.isArray(response.data)) {
+                return response.data;
+            }
+            else {
+                console.warn('Unexpected API response format:', response.data);
+                return [];
+            }
         } catch (error) {
             console.error('Error fetching bookings:', error);
             throw error;

@@ -27,7 +27,8 @@ namespace ConferenceRoomBookingSystem
         {
             return await _context.Bookings
                 .Include(b => b.Room)
-                .OrderByDescending(b => b.StartTime)
+                .OrderBy(b => b.BookingDate)
+                .ThenBy(b => b.StartTime)
                 .ToListAsync();
         }
 
@@ -36,7 +37,8 @@ namespace ConferenceRoomBookingSystem
             return await _context.Bookings
                 .Include(b => b.Room)
                 .Where(b => b.UserId == userId)
-                .OrderByDescending(b => b.StartTime)
+                .OrderBy(b => b.BookingDate)
+                .ThenBy(b => b.StartTime)
                 .ToListAsync();
         }
 
@@ -44,7 +46,8 @@ namespace ConferenceRoomBookingSystem
         {
             return await _context.Bookings
                 .Where(b => b.RoomId == roomId)
-                .OrderBy(b => b.StartTime)
+                .OrderBy(b => b.BookingDate)
+                .ThenBy(b => b.StartTime)
                 .ToListAsync();
         }
 
@@ -76,13 +79,14 @@ namespace ConferenceRoomBookingSystem
             return await _context.Bookings.AnyAsync(b => b.Id == id);
         }
 
-        public async Task<bool> HasOverlapAsync(int roomId, DateTime start, DateTime end, int? excludeBookingId = null)
+        public async Task<bool> HasOverlapAsync(int roomId, DateOnly bookingDate, TimeOnly startTime, TimeOnly endTime, int? excludeBookingId = null)
         {
             var query = _context.Bookings
                 .Where(b => b.RoomId == roomId 
+                         && b.BookingDate == bookingDate
                          && b.Status == BookingStatus.Confirmed
-                         && start < b.EndTime 
-                         && end > b.StartTime);
+                         && startTime < b.EndTime 
+                         && endTime > b.StartTime);
 
             if (excludeBookingId.HasValue)
             {

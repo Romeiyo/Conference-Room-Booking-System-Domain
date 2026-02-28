@@ -54,6 +54,7 @@ namespace ConferenceRoomBookingSystem
 
             bool overlaps = await _bookingRepository.HasOverlapAsync(
                 room.Id, 
+                request.BookingDate,
                 request.StartTime, 
                 request.EndTime);
 
@@ -63,7 +64,7 @@ namespace ConferenceRoomBookingSystem
             }
 
             // Create and confirm the booking
-            var booking = new Booking(room, request.UserId, request.StartTime, request.EndTime);
+            var booking = new Booking(room, request.UserId, request.BookedBy, request.BookingDate, request.StartTime, request.EndTime);
 
             booking.ConfirmBooking();
             

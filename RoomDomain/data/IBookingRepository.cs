@@ -15,7 +15,7 @@ namespace ConferenceRoomBookingSystem
         Task UpdateAsync(Booking booking);
         Task DeleteAsync(int id);
         Task<bool> ExistsAsync(int id);
-        Task<bool> HasOverlapAsync(int roomId, DateTime startTime, DateTime endTime, int? excludeBookingId = null);
+        Task<bool> HasOverlapAsync(int roomId, DateOnly bookingDate, TimeOnly startTime, TimeOnly endTime, int? excludeBookingId = null);
         Task SaveChangesAsync();
     }
 }

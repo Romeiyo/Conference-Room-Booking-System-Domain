@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "./Button";
 import '../App.css';
 
-function BookingForm({ onAddBooking }) {
+function BookingForm({ onAddBooking, formErrors = {}, clearFormErrors }) {
 
     const [roomName, setName] = useState("");
     const [date, setDate] = useState(new Date());
@@ -10,6 +10,18 @@ function BookingForm({ onAddBooking }) {
     const [endTime, setEndTime] = useState("");
     const [location, setLocation] = useState("Bloemfontein");
     const [bookedBy, setBookedBy] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState("");
+
+    useEffect(() => {
+        if (clearFormErrors && Object.keys(formErrors).length > 0) {
+            // We'll clear on input change, but let's debounce it
+            const timer = setTimeout(() => {
+                clearFormErrors();
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+    }, [roomName, date, startTime, endTime, location, bookedBy, formErrors, clearFormErrors]);
 
     const formatDateForInput = (dateObject) => {
         const year = dateObject.getFullYear();
@@ -26,28 +38,69 @@ function BookingForm({ onAddBooking }) {
         setEndTime(event.target.value);
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitError("");
+
+        // Basic validation
+        if (!roomName || !date || !startTime || !endTime || !location || !bookedBy) {
+            setSubmitError("Please fill in all fields");
+            return;
+        }
+
+        if (startTime >= endTime) {
+            setSubmitError("End time must be after start time");
+            return;
+        }
+
+        setIsSubmitting(true);
 
         const newBooking = {
-            id: Date.now(),
+            //id: Date.now(),
             roomName,
             date: formatDateForInput(date),
             startTime,
             endTime,
             location,
             bookedBy
+        };
+
+        try {
+            const result = await onAddBooking(newBooking);
+            
+            if (result && result.success) {
+                // Clear form on success
+                setRoomName("");
+                setDate(new Date());
+                setStartTime("");
+                setEndTime("");
+                setLocation("Bloemfontein");
+                setBookedBy("");
+                setSubmitError("");
+                
+                // Show success message (optional)
+                alert("Booking created successfully!");
+            } else if (result && result.error) {
+                // Handle error from the hook
+                if (result.error.errors) {
+                    // Field errors are already in formErrors from the hook
+                    setSubmitError("Please fix the errors below");
+                } else {
+                    setSubmitError(result.error.message || "Failed to create booking");
+                }
+            }
+        } catch (error) {
+            setSubmitError(error.message || "An unexpected error occurred");
+        } finally {
+            setIsSubmitting(false);
         }
+    };
 
-        onAddBooking(newBooking);
-
-        // Clear form
-        setName("");
-        setDate(new Date());
-        setStartTime("");
-        setEndTime("");
-        setLocation("");
-        setBookedBy("");
+    // Helper to get field-specific error
+    const getFieldError = (fieldName) => {
+        return formErrors[fieldName] ? (
+            <span className="field-error">{formErrors[fieldName]}</span>
+        ) : null;
     };
 
     return (
@@ -56,83 +109,138 @@ function BookingForm({ onAddBooking }) {
                 Book a New Room
             </h3>
 
+            {submitError && (<div className="form-error-message">
+                {submitError}
+            </div>)}
+
             <div className="form-row">
                 <label>Room Name:</label>
-                <select 
-                    id="roomName"
-                    value={roomName} 
-                    onChange={(e) => setName(e.target.value)}
-                >
-                    <option value="Room A">Room A</option>
-                    <option value="Room B">Room B</option>
-                    <option value="Room C">Room C</option>
-                    <option value="Room D">Room D</option>
-                    <option value="Room E">Room E</option>
-                    <option value="Room F">Room F</option>
-                    <option value="Room G">Room G</option>
-                    
-                </select>
+                <div className="field-container">
+                    <select 
+                        id="roomName"
+                        value={roomName} 
+                        onChange={(e) => setName(e.target.value)}
+                        disabled={isSubmitting}
+                        className={formErrors.roomName ? 'error' : ''}
+                    >   
+                        <option value="Room A">Room A</option>
+                        <option value="Room B">Room B</option>
+                        <option value="Room C">Room C</option>
+                        <option value="Room D">Room D</option>
+                        <option value="Room E">Room E</option>
+                        <option value="Room F">Room F</option>
+                        <option value="Room G">Room G</option>
+                        <option value="Room G">Room H</option>
+                        <option value="Room G">Room I</option>
+                        <option value="Room G">Room J</option>
+                        <option value="Room G">Room K</option>
+                        <option value="Room G">Room L</option>
+                        <option value="Room G">Room M</option>
+                        <option value="Room G">Room N</option>
+                        <option value="Room G">Room O</option>
+                        <option value="Room G">Room P</option>
+                    </select>
+                    {getFieldError('roomName')}
+                    {getFieldError('Room')}
+                </div>
             </div>
 
             <div className="form-row">
                 <label>Date:</label>
-                <input 
-                    id="date"
-                    type="date" 
-                    value={formatDateForInput(date)}
-                    onChange={(e) => setDate(new Date(e.target.value))}
-                    required
-                />
+                <div className="field-container">
+                    <input 
+                        id="date"
+                        type="date" 
+                        value={formatDateForInput(date)}
+                        onChange={(e) => setDate(new Date(e.target.value))}
+                        required
+                        disabled={isSubmitting}
+                        className={formErrors.date || formErrors.BookingDate ? 'error' : ''}
+                    />
+                    {getFieldError('date')}
+                    {getFieldError('BookingDate')}
+                </div>
             </div>
 
             <div className="form-row">
                 <label>Start Time:</label>
-                <input 
-                    id="startTime"
-                    type="time" 
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    required
-                />
+                <div className="field-container">
+                    <input 
+                        id="startTime"
+                        type="time" 
+                        value={startTime}
+                        onChange={(e) => setStartTime(e.target.value)}
+                        required
+                        disabled={isSubmitting}
+                        className={formErrors.startTime || formErrors.StartTime ? 'error' : ''}
+                    />
+                    {getFieldError('startTime')}
+                    {getFieldError('StartTime')}
+                </div>
             </div>
 
             <div className="form-row">
                 <label>End Time:</label>
-                <input 
-                    id="endTime"
-                    type="time" 
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    required
-                />
+                <div className="field-container">
+                    <input 
+                        id="endTime"
+                        type="time" 
+                        value={endTime}
+                        onChange={(e) => setEndTime(e.target.value)}
+                        required
+                        disabled={isSubmitting}
+                        className={formErrors.endTime || formErrors.EndTime ? 'error' : ''}
+                    />
+                    {getFieldError('endTime')}
+                    {getFieldError('EndTime')}
+                </div>
             </div>
 
             <div className="form-row">
                 <label>Location:</label>
-                <select 
-                    id="location"
-                    value={location} 
-                    onChange={(e) => setLocation(e.target.value)}
-                >
-                    <option value="Bloemfontein">Bloemfontein</option>
-                    <option value="Cape Town">Cape Town</option>
-                </select>
+                <div className="field-container">
+                    <select 
+                        id="location"
+                        value={location} 
+                        onChange={(e) => setLocation(e.target.value)}
+                        disabled={isSubmitting}
+                        className={formErrors.location ? 'error' : ''}
+                    >
+                        <option value="Bloemfontein">Bloemfontein</option>
+                        <option value="Cape Town">Cape Town</option>
+                    </select>
+                    {getFieldError('location')}
+                </div>
             </div>
 
             <div className="form-row">
                 <label>Booked By:</label>
-                <input
-                    id="bookedBy"
-                    type="text"
-                    value={bookedBy}
-                    onChange={(e) => setBookedBy(e.target.value)}
-                    placeholder="Enter your name"
-                    required
-                />
+                <div className="field-container">
+                    <input
+                        id="bookedBy"
+                        type="text"
+                        value={bookedBy}
+                        onChange={(e) => setBookedBy(e.target.value)}
+                        placeholder="Enter your name"
+                        required
+                        disabled={isSubmitting}
+                        className={formErrors.bookedBy || formErrors.BookedBy ? 'error' : ''}
+                    />
+                    {getFieldError('bookedBy')}
+                    {getFieldError('BookedBy')}
+                </div>
             </div>
 
+            {formErrors.time && (
+                <div className="form-row">
+                    <div className="field-container">
+                        <span className="field-error">{formErrors.time}</span>
+                    </div>
+                </div>
+            )}
+
             <div className="form-row">
-                <Button label="Book Room"/>
+                <Button label={isSubmitting ? "Booking..." : "Book Room"}/>
             </div>
         </form>       
     );

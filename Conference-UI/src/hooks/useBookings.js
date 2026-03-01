@@ -10,6 +10,7 @@ export function useBookings() {
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [retryCount, setRetryCount] = useState(0);
+  const [formErrors, setFormErrors] = useState({});
 
   // Fetch bookings from API
   const fetchBookings = useCallback(async (signal) => {
@@ -38,8 +39,23 @@ export function useBookings() {
           throw new Error('Network error - unable to reach the server. Please check your connection.');
         }
         
+        // if (apiError.response) {
+        //   // Server responded with error status
+        //   throw new Error(`Server error (${apiError.response.status}): ${apiError.response.data?.message || 'Something went wrong'}`);
+        // }
         if (apiError.response) {
           // Server responded with error status
+          // Check for ProblemDetails format
+          if (apiError.response.data && apiError.response.data.errors) {
+            // This is ProblemDetails format
+            const problemDetails = apiError.response.data;
+            throw {
+              message: problemDetails.title || 'Validation error',
+              errors: problemDetails.errors,
+              status: apiError.response.status
+            };
+          }
+          
           throw new Error(`Server error (${apiError.response.status}): ${apiError.response.data?.message || 'Something went wrong'}`);
         }
 
@@ -52,7 +68,14 @@ export function useBookings() {
       
     } catch (err) {
       console.error('Failed to fetch bookings:', err);
-      setError(err.message || 'Failed to load bookings');
+      
+      // Handle structured error with field errors
+      if (err.errors) {
+        setError(err.message);
+        setFormErrors(err.errors);
+      } else {
+        setError(err.message || 'Failed to load bookings');
+      }
       
       // Try to load from localStorage as last resort
       const savedBookings = localStorage.getItem('bookings');
@@ -98,6 +121,7 @@ export function useBookings() {
   const addBooking = async (newBooking) => {
     try {
       setError(null);
+      setFormErrors({});
       
       // Try to create via API
       let createdBooking;
@@ -106,10 +130,15 @@ export function useBookings() {
           ...newBooking,
           status: 'Confirmed'
         });
+
+        //pessimiatic update: update local state after success from API
+        setBookings(prev => [...prev, createdBooking]);
+        return {success: true, data: createdBooking };
+
       } catch (apiError) {
          // Handle specific API errors
         if (axios.isCancel(apiError)) {
-          return; // Silently ignore cancellations
+          return {success: false, cancelled: true}; // Silently ignore cancellations
         }
         
         if (apiError.code === 'ECONNABORTED') {
@@ -120,27 +149,73 @@ export function useBookings() {
           throw new Error('Network error - unable to reach the server. Please check your connection.');
         }
         
-        if (apiError.response?.status === 409) {
-          throw new Error('Booking conflict - this time slot is already taken.');
+        if (apiError.response.status === 409) {
+          const fieldError = {
+            time: 'This time slot is already booked. Please choose a different time.'
+          };
+          setFormErrors(fieldError);
+          throw {
+            message: 'Booking conflict',
+            errors: fieldError
+          };
         }
 
-        console.warn('API create failed, using local creation:', apiError);
+        if (apiError.response.status === 400 && problemData.errors) {
+          //Transform problemdetails errors to field specific format
+          const fieldErrors = {};
+          Object.keys(problemData.errors).forEach(key => {
+            // Map backend names to frontend field names
+            const fieldMap = {
+              'StartTime': 'startTime',
+              'EndTime': 'endTime',
+              'Room': 'roomName',
+              'BookingDate': 'date',
+              'BookedBy': 'bookedBy'
+            };
+
+            const frontendField = fieldMap[key] ||key.toLowerCase();
+            fieldErrors[frontendField] = problemData.errors[key].join(',');
+          });
+
+          setFormErrors(fieldErrors);
+          throw{
+            message: problemData.title || 'Validation error',
+            errors: fieldErrors
+          };
+        }
+
+        //Handle other errors
+        if (apiError.response.status === 422) {
+          throw new Error(problemData.detail || problemData.title || 'Invalid booking data');
+        }
+      }
+
+      console.warn('API create failed, using local creation:', apiError);
         
         // Fallback: create locally
-        createdBooking = {
-          id: Date.now(),
-          ...newBooking,
-          status: 'Confirmed'
-        };
-      }
+      createdBooking = {
+        id: Date.now(),
+        ...newBooking,
+        status: 'Confirmed'
+      };
+      
       
       setBookings(prev => [...prev, createdBooking]);
-      return createdBooking;
+      return {success: true, data: createdBooking, fallback:true};
       
     } catch (err) {
+
       console.error('Failed to add booking:', err);
-      setError(err.message || 'Failed to add booking');
-      throw err;
+      
+      // Handle structured error with field errors
+      if (err.errors) {
+        setFormErrors(err.errors);
+        setError(err.message);
+      } else {
+        setError(err.message || 'Failed to add booking');
+      }
+
+      return { success: false, error: err};
     }
   };
 
@@ -177,6 +252,13 @@ export function useBookings() {
             throw new Error('Network error - unable to reach the server.');
           }
 
+          if (apiError.response?.data && apiError.response.data.errors) {
+            throw {
+              message: apiError.response.data.title || 'Cancellation failed',
+              errors: apiError.response.data.errors
+            };
+          }
+
           console.warn('API cancel failed, using local cancellation:', apiError);
         }
         
@@ -186,8 +268,16 @@ export function useBookings() {
         return true;
         
       } catch (err) {
+
         console.error('Failed to cancel booking:', err);
-        setError(err.message || 'Failed to cancel booking');
+        
+        if (err.errors) {
+          setFormErrors(err.errors);
+          setError(err.message);
+        } else {
+          setError(err.message || 'Failed to cancel booking');
+        }
+        
         return false;
       }
     }
@@ -218,6 +308,14 @@ export function useBookings() {
           if (apiError.message === 'Network Error') {
             throw new Error('Network error - unable to reach the server.');
           }
+
+          // Handle ProblemDetails for cancellation errors
+          if (apiError.response?.data && apiError.response.data.errors) {
+            throw {
+              message: apiError.response.data.title || 'Cancellation failed',
+              errors: apiError.response.data.errors
+            };
+          }
           
           console.warn('API cancel failed, using local cancellation:', apiError);
         }
@@ -234,7 +332,14 @@ export function useBookings() {
         
       } catch (err) {
         console.error('Failed to cancel booking:', err);
-        setError(err.message || 'Failed to cancel booking');
+        
+        if (err.errors) {
+          setFormErrors(err.errors);
+          setError(err.message);
+        } else {
+          setError(err.message || 'Failed to cancel booking');
+        }
+        
         return false;
       }
     }
@@ -256,6 +361,11 @@ export function useBookings() {
     fetchBookings();
   };
 
+  // Clear form errors
+  const clearFormErrors = () => {
+    setFormErrors({});
+  };
+
   // Get unique locations for filter
   const locations = ['All', ...new Set(bookings.map(b => b.location))];
 
@@ -271,6 +381,7 @@ export function useBookings() {
     filteredBookings,
     isLoading,
     error,
+    formErrors,
     selectedBookingId,
     categoryFilter,
     locations,
@@ -289,6 +400,7 @@ export function useBookings() {
     changeFilter,
     retryFetch,
     refreshBookings,
+    clearFormErrors,
     
     // Derived
     hasBookings: bookings.length > 0,

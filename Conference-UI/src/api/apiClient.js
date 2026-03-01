@@ -44,6 +44,21 @@ apiClient.interceptors.response.use(
         return Promise.reject(error);
     }
 
+     // Handle 401 Unauthorized errors globally
+    if (error.response && error.response.status === 401) {
+        console.error('Unauthorized access - redirecting to login');
+        
+        // Clear token
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        
+        // Dispatch custom event for components to listen to
+        window.dispatchEvent(new Event('unauthorized'));
+        
+        // Don't redirect immediately - let the event handler do it
+        // This prevents redirect loops
+    }
+
      // Log error message
     if (error.code === 'ECONNABORTED') {
       console.error('Request timeout:', error.message);

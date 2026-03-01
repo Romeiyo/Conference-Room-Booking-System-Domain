@@ -57,10 +57,16 @@ export const bookingService = {
     async createBooking(bookingData) {
         try {
             // Transforming the booking data to match API expectations
+            // Map room name to room ID
+            const roomId = getRoomIdFromName(bookingData.roomName);
+            
             const apiBookingData = {
-                room: { id: parseInt(bookingData.roomId) || 1 }, 
-                startTime: new Date(`${bookingData.date}T${bookingData.startTime}`).toISOString(),
-                endTime: new Date(`${bookingData.date}T${bookingData.endTime}`).toISOString()
+                room: { 
+                    id: roomId 
+                },
+                bookingDate: bookingData.date,
+                startTime: bookingData.startTime,
+                endTime: bookingData.endTime
             };
             
             return await apiClient.post('/booking', apiBookingData);
@@ -149,3 +155,27 @@ export const bookingService = {
         }
     }
 };
+
+// Helper function to map room name to room ID
+function getRoomIdFromName(roomName) {
+    const roomMap = {
+        'Room A': 1,
+        'Room B': 2,
+        'Room C': 3,
+        'Room D': 4,
+        'Room E': 5,
+        'Room F': 6,
+        'Room G': 7,
+        'Room H': 8,
+        'Room I': 9,
+        'Room J': 10,
+        'Room K': 11,
+        'Room L': 12,
+        'Room M': 13,
+        'Room N': 14,
+        'Room O': 15,
+        'Room P': 16
+    };
+    
+    return roomMap[roomName] || 1; // Default to Room A if a room doesnt exist
+}

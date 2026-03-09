@@ -60,16 +60,40 @@ export const bookingService = {
             // Map room name to room ID
             const roomId = getRoomIdFromName(bookingData.roomName);
             
+            const formatTimeWithSeconds = (timeString) => {
+                if (timeString.length === 5) { // "21:36" format
+                    return `${timeString}:00`; // Add seconds
+                }
+                return timeString;
+            };
+
             const apiBookingData = {
                 room: { 
                     id: roomId 
                 },
                 bookingDate: bookingData.date,
+                startTime: formatTimeWithSeconds(bookingData.startTime),
+                endTime: formatTimeWithSeconds(bookingData.endTime)
+            };
+
+            
+            
+            // 🔍 ADD DETAILED LOGGING
+            console.log('📤 Sending to API:', {
+                url: '/booking',
+                method: 'POST',
+                data: apiBookingData,
+                roomId: roomId,
+                roomName: bookingData.roomName,
+                date: bookingData.date,
                 startTime: bookingData.startTime,
                 endTime: bookingData.endTime
-            };
-            
-            return await apiClient.post('/booking', apiBookingData);
+            });
+        
+            const response = await apiClient.post('/booking', apiBookingData);
+            console.log('Booking response:', response);
+
+            return response;
         } catch (error) {
             console.error('Error creating booking:', error);
             throw error;

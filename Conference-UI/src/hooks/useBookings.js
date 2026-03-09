@@ -118,105 +118,238 @@ export function useBookings() {
   }, [bookings]);
 
   // Add new booking
+  // const addBooking = async (newBooking) => {
+  //   try {
+  //     setError(null);
+  //     setFormErrors({});
+      
+  //     // Try to create via API
+  //     let createdBooking;
+  //     try {
+  //       createdBooking = await bookingService.createBooking({
+  //         ...newBooking,
+  //         status: 'Booked'
+  //       });
+
+  //       //pessimiatic update: update local state after success from API
+  //       setBookings(prev => [...prev, createdBooking]);
+  //       return {success: true, data: createdBooking };
+
+  //     } catch (apiError) {
+  //        // Handle specific API errors
+  //       if (axios.isCancel(apiError)) {
+  //         return {success: false, cancelled: true}; // Silently ignore cancellations
+  //       }
+        
+  //       if (apiError.code === 'ECONNABORTED') {
+  //         throw new Error('Request timeout - server took too long to respond. Please try again.');
+  //       }
+        
+  //       if (apiError.message === 'Network Error') {
+  //         throw new Error('Network error - unable to reach the server. Please check your connection.');
+  //       }
+        
+  //       if (apiError.response && apiError.response.status === 409) {
+  //         const fieldError = {
+  //           time: 'This time slot is already booked. Please choose a different time.'
+  //         };
+  //         setFormErrors(fieldError);
+  //         throw {
+  //           message: 'Booking conflict',
+  //           errors: fieldError
+  //         };
+  //       }
+
+  //       if (apiError.response.status === 400 && apiError.response) {
+  //         const responseData = apiError.response.data;
+
+  //         if (responseData && responseData.errors)
+  //         {
+  //           //Transform problemdetails errors to field specific format
+  //           const fieldErrors = {};
+  //           Object.keys(problemData.errors).forEach(key => {
+  //             // Map backend names to frontend field names
+  //             const fieldMap = {
+  //               'StartTime': 'startTime',
+  //               'EndTime': 'endTime',
+  //               'Room': 'roomName',
+  //               'BookingDate': 'date',
+  //               'BookedBy': 'bookedBy'
+  //             };
+
+  //             const frontendField = fieldMap[key] ||key.toLowerCase();
+  //             fieldErrors[frontendField] = problemData.errors[key].join(',');
+  //           });
+
+  //           setFormErrors(fieldErrors);
+  //           throw{
+  //             message: problemData.title || 'Validation error',
+  //             errors: fieldErrors
+  //           };
+  //         }
+  //       }
+
+  //       //Handle other errors
+  //       if (apiError.response) {
+  //         const status = apiError.response.status;
+  //         const responseData = apiError.response.data;
+
+  //         if (status === 422){
+  //           throw new Error(responseData?.detail || responseData?.title || 'Invalid booking data');
+  //         }
+
+  //         throw new Error(`Server error (${status}): ${responseData?.message || 'Something went wrong'}`);
+  //       }
+  //     }
+
+  //     console.warn('API create failed, using local creation:', apiError);
+        
+  //       // Fallback: create locally
+  //     createdBooking = {
+  //       id: Date.now(),
+  //       ...newBooking,
+  //       status: 'Confirmed'
+  //     };
+      
+      
+  //     setBookings(prev => [...prev, createdBooking]);
+  //     return {success: true, data: createdBooking, fallback:true};
+      
+  //   } catch (err) {
+
+  //     console.error('Failed to add booking:', err);
+      
+  //     // Handle structured error with field errors
+  //     if (err.errors) {
+  //       setFormErrors(err.errors);
+  //       setError(err.message);
+  //     } else {
+  //       setError(err.message || 'Failed to add booking');
+  //     }
+
+  //     return { success: false, error: err};
+  //   }
+  // };
+
+  // Add new booking
   const addBooking = async (newBooking) => {
-    try {
-      setError(null);
-      setFormErrors({});
-      
-      // Try to create via API
-      let createdBooking;
       try {
-        createdBooking = await bookingService.createBooking({
-          ...newBooking,
-          status: 'Confirmed'
-        });
+          setError(null);
+          setFormErrors({});
 
-        //pessimiatic update: update local state after success from API
-        setBookings(prev => [...prev, createdBooking]);
-        return {success: true, data: createdBooking };
+          // Try to create via API
+          let createdBooking;
+          try {
+              createdBooking = await bookingService.createBooking({
+                  ...newBooking,
+                  status: 'Confirmed'
+              });
 
-      } catch (apiError) {
-         // Handle specific API errors
-        if (axios.isCancel(apiError)) {
-          return {success: false, cancelled: true}; // Silently ignore cancellations
-        }
-        
-        if (apiError.code === 'ECONNABORTED') {
-          throw new Error('Request timeout - server took too long to respond. Please try again.');
-        }
-        
-        if (apiError.message === 'Network Error') {
-          throw new Error('Network error - unable to reach the server. Please check your connection.');
-        }
-        
-        if (apiError.response.status === 409) {
-          const fieldError = {
-            time: 'This time slot is already booked. Please choose a different time.'
-          };
-          setFormErrors(fieldError);
-          throw {
-            message: 'Booking conflict',
-            errors: fieldError
-          };
-        }
+              // Optimistic update: update local state after success from API
+              setBookings(prev => [...prev, createdBooking]);
+              return {success: true, data: createdBooking };
 
-        if (apiError.response.status === 400 && problemData.errors) {
-          //Transform problemdetails errors to field specific format
-          const fieldErrors = {};
-          Object.keys(problemData.errors).forEach(key => {
-            // Map backend names to frontend field names
-            const fieldMap = {
-              'StartTime': 'startTime',
-              'EndTime': 'endTime',
-              'Room': 'roomName',
-              'BookingDate': 'date',
-              'BookedBy': 'bookedBy'
-            };
+          } catch (apiError) {
+              // Handle specific API errors
+              if (axios.isCancel(apiError)) {
+                  return {success: false, cancelled: true};
+              }
 
-            const frontendField = fieldMap[key] ||key.toLowerCase();
-            fieldErrors[frontendField] = problemData.errors[key].join(',');
-          });
+              if (apiError.code === 'ECONNABORTED') {
+                  throw new Error('Request timeout - server took too long to respond. Please try again.');
+              }
 
-          setFormErrors(fieldErrors);
-          throw{
-            message: problemData.title || 'Validation error',
-            errors: fieldErrors
-          };
-        }
+              if (apiError.message === 'Network Error') {
+                  throw new Error('Network error - unable to reach the server. Please check your connection.');
+              }
 
-        //Handle other errors
-        if (apiError.response.status === 422) {
-          throw new Error(problemData.detail || problemData.title || 'Invalid booking data');
-        }
+              //Check if this is a 409 Conflict (booking overlap)
+              if (apiError.response && apiError.response.status === 409) {
+                  const fieldError = {
+                      time: 'This time slot is already booked. Please choose a different time.'
+                  };
+                  setFormErrors(fieldError);
+                  throw {
+                      message: 'Booking conflict',
+                      errors: fieldError
+                  };
+              }
+
+              //Handle 400 Bad Request with ProblemDetails
+              if (apiError.response && apiError.response.status === 400) {
+                  const responseData = apiError.response.data; // Define problemData here!
+
+                  console.log('🔍 FULL ERROR RESPONSE:', apiError.response);
+                  console.log('🔍 ERROR DATA:', responseData);
+                  console.log('🔍 ERROR STATUS:', apiError.response.status);
+                  console.log('🔍 ERROR HEADERS:', apiError.response.headers);
+
+                  // Check if it's ProblemDetails format with errors
+                  if (responseData && responseData.errors) {
+                      console.log('🔍 VALIDATION ERRORS:', responseData.errors);
+                      // Transform problemdetails errors to field specific format
+                      const fieldErrors = {};
+                      Object.keys(responseData.errors).forEach(key => {
+                          // Map backend names to frontend field names
+                          const fieldMap = {
+                              'StartTime': 'startTime',
+                              'EndTime': 'endTime',
+                              'Room': 'roomName',
+                              'BookingDate': 'date',
+                              'BookedBy': 'bookedBy'
+                          };
+
+                          const frontendField = fieldMap[key] || key.toLowerCase();
+                          fieldErrors[frontendField] = responseData.errors[key].join(', ');
+                      });
+
+                      setFormErrors(fieldErrors);
+                      throw {
+                          message: responseData.title || 'Validation error',
+                          errors: fieldErrors
+                      };
+                    }
+              }
+
+              // Handle other error statuses
+              if (apiError.response) {
+                  const status = apiError.response.status;
+                  const responseData = apiError.response.data;
+
+                  if (status === 422) {
+                      throw new Error(responseData?.detail || responseData?.title || 'Invalid booking data');
+                  }
+
+                  // Generic error for other status codes
+                  throw new Error(`Server error (${status}): ${responseData?.message || 'Something went wrong'}`);
+              }
+
+              console.warn('API create failed, using local creation:', apiError);
+
+              // Fallback: create locally
+              createdBooking = {
+                  id: Date.now(),
+                  ...newBooking,
+                  status: 'Confirmed'
+              };
+
+              setBookings(prev => [...prev, createdBooking]);
+              return {success: true, data: createdBooking, fallback: true};
+          }
+
+      } catch (err) {
+          console.error('Failed to add booking:', err);
+
+          // Handle structured error with field errors
+          if (err.errors) {
+              setFormErrors(err.errors);
+              setError(err.message);
+          } else {
+              setError(err.message || 'Failed to add booking');
+          }
+
+          return { success: false, error: err };
       }
-
-      console.warn('API create failed, using local creation:', apiError);
-        
-        // Fallback: create locally
-      createdBooking = {
-        id: Date.now(),
-        ...newBooking,
-        status: 'Confirmed'
-      };
-      
-      
-      setBookings(prev => [...prev, createdBooking]);
-      return {success: true, data: createdBooking, fallback:true};
-      
-    } catch (err) {
-
-      console.error('Failed to add booking:', err);
-      
-      // Handle structured error with field errors
-      if (err.errors) {
-        setFormErrors(err.errors);
-        setError(err.message);
-      } else {
-        setError(err.message || 'Failed to add booking');
-      }
-
-      return { success: false, error: err};
-    }
   };
 
   // Select a booking

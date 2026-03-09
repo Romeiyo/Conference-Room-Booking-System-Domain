@@ -42,6 +42,15 @@ function BookingForm({ onAddBooking, formErrors = {}, clearFormErrors }) {
         e.preventDefault();
         setSubmitError("");
 
+         console.log('📝 Form values:', {
+            roomName,
+            date: formatDateForInput(date),
+            startTime,
+            endTime,
+            location,
+            bookedBy
+        });
+
         // Basic validation
         if (!roomName || !date || !startTime || !endTime || !location || !bookedBy) {
             setSubmitError("Please fill in all fields");
@@ -53,6 +62,7 @@ function BookingForm({ onAddBooking, formErrors = {}, clearFormErrors }) {
             return;
         }
 
+        console.log('✅ Validation passed, submitting...');
         setIsSubmitting(true);
 
         const newBooking = {
@@ -130,15 +140,15 @@ function BookingForm({ onAddBooking, formErrors = {}, clearFormErrors }) {
                         <option value="Room E">Room E</option>
                         <option value="Room F">Room F</option>
                         <option value="Room G">Room G</option>
-                        <option value="Room G">Room H</option>
-                        <option value="Room G">Room I</option>
-                        <option value="Room G">Room J</option>
-                        <option value="Room G">Room K</option>
-                        <option value="Room G">Room L</option>
-                        <option value="Room G">Room M</option>
-                        <option value="Room G">Room N</option>
-                        <option value="Room G">Room O</option>
-                        <option value="Room G">Room P</option>
+                        <option value="Room H">Room H</option>
+                        <option value="Room I">Room I</option>
+                        <option value="Room J">Room J</option>
+                        <option value="Room K">Room K</option>
+                        <option value="Room L">Room L</option>
+                        <option value="Room M">Room M</option>
+                        <option value="Room N">Room N</option>
+                        <option value="Room O">Room O</option>
+                        <option value="Room P">Room P</option>
                     </select>
                     {getFieldError('roomName')}
                     {getFieldError('Room')}

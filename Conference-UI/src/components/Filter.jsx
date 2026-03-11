@@ -12,8 +12,8 @@ function Filter({ categoryFilter, onCategoryChange, locations }) {
         onChange={onCategoryChange}
         className="filter-select"
       >
-        {locations.map(location => (
-          <option key={location} value={location}>
+        {locations.map((location, index) => (
+          <option key={index} value={location}>
             {location}
           </option>
         ))}

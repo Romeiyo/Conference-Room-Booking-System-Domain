@@ -155,11 +155,11 @@ export function useBookings() {
                 if (apiError.response && apiError.response.status === 400) {
                     const responseData = apiError.response.data;
 
-                    console.log('🔍 FULL ERROR RESPONSE:', apiError.response);
-                    console.log('🔍 ERROR DATA:', responseData);
+                    console.log('FULL ERROR RESPONSE:', apiError.response);
+                    console.log('ERROR DATA:', responseData);
 
                     if (responseData && responseData.errors) {
-                        console.log('🔍 VALIDATION ERRORS:', responseData.errors);
+                        console.log('VALIDATION ERRORS:', responseData.errors);
                         const fieldErrors: Record<string, string> = {};
                         Object.keys(responseData.errors).forEach(key => {
                             const fieldMap: Record<string, string> = {

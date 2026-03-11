@@ -39,23 +39,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Check for existing token on mount (hydration)
     useEffect(() => {
-        console.log('🔍 AuthProvider: Checking for existing token...');
+        console.log('AuthProvider: Checking for existing token...');
         const token = localStorage.getItem('token');
         const userDataString = localStorage.getItem('user');
         
         if (token && userDataString) {
             try {
                 const parsedUser = JSON.parse(userDataString) as User;
-                console.log('✅ AuthProvider: User restored from localStorage:', parsedUser);
+                console.log('AuthProvider: User restored from localStorage:', parsedUser);
                 setUser(parsedUser);
             } catch (e) {
-                console.error('❌ AuthProvider: Failed to parse user data:', e);
+                console.error('AuthProvider: Failed to parse user data:', e);
                 // Clear invalid data
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
             }
         } else {
-            console.log('ℹ️ AuthProvider: No existing token found');
+            console.log('AuthProvider: No existing token found');
         }
         
         setIsLoading(false);
@@ -67,12 +67,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setIsLoading(true);
             setError(null);
             
-            console.log('📤 AuthProvider: Sending login request');
+            console.log('AuthProvider: Sending login request');
             const response = await authService.login(credentials);
-            console.log('📥 AuthProvider: Login response:', response);
+            console.log('AuthProvider: Login response:', response);
             
             if (response && response.token) {
-                console.log('✅ AuthProvider: Token received, storing...');
+                console.log('AuthProvider: Token received, storing...');
                 
                 // Store in localStorage
                 localStorage.setItem('token', response.token);
@@ -84,18 +84,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 };
                 
                 localStorage.setItem('user', JSON.stringify(userData));
-                console.log('✅ AuthProvider: User data stored:', userData);
+                console.log('AuthProvider: User data stored:', userData);
 
                 // Update state
                 setUser(userData);
                 
                 return response;
             } else {
-                console.error('❌ AuthProvider: No token in response');
+                console.error('AuthProvider: No token in response');
                 throw new Error('Invalid response from server');
             }
         } catch (err: any) {
-            console.error('❌ AuthProvider: Login error:', err);
+            console.error('AuthProvider: Login error:', err);
             const errorMessage = err.response?.data?.message || 
                                 err.message || 
                                 'Login failed. Please check your credentials.';
@@ -108,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Logout function
     const logout = () => {
-        console.log('🚪 AuthProvider: Logging out...');
+        console.log('AuthProvider: Logging out...');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setUser(null);
@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Handle 401 unauthorized events (for extra credit)
     useEffect(() => {
         const handleUnauthorized = () => {
-            console.log('🔒 AuthProvider: Unauthorized event received');
+            console.log('AuthProvider: Unauthorized event received');
             if (user) {
                 logout();
             }

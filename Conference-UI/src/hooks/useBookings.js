@@ -118,120 +118,6 @@ export function useBookings() {
   }, [bookings]);
 
   // Add new booking
-  // const addBooking = async (newBooking) => {
-  //   try {
-  //     setError(null);
-  //     setFormErrors({});
-      
-  //     // Try to create via API
-  //     let createdBooking;
-  //     try {
-  //       createdBooking = await bookingService.createBooking({
-  //         ...newBooking,
-  //         status: 'Booked'
-  //       });
-
-  //       //pessimiatic update: update local state after success from API
-  //       setBookings(prev => [...prev, createdBooking]);
-  //       return {success: true, data: createdBooking };
-
-  //     } catch (apiError) {
-  //        // Handle specific API errors
-  //       if (axios.isCancel(apiError)) {
-  //         return {success: false, cancelled: true}; // Silently ignore cancellations
-  //       }
-        
-  //       if (apiError.code === 'ECONNABORTED') {
-  //         throw new Error('Request timeout - server took too long to respond. Please try again.');
-  //       }
-        
-  //       if (apiError.message === 'Network Error') {
-  //         throw new Error('Network error - unable to reach the server. Please check your connection.');
-  //       }
-        
-  //       if (apiError.response && apiError.response.status === 409) {
-  //         const fieldError = {
-  //           time: 'This time slot is already booked. Please choose a different time.'
-  //         };
-  //         setFormErrors(fieldError);
-  //         throw {
-  //           message: 'Booking conflict',
-  //           errors: fieldError
-  //         };
-  //       }
-
-  //       if (apiError.response.status === 400 && apiError.response) {
-  //         const responseData = apiError.response.data;
-
-  //         if (responseData && responseData.errors)
-  //         {
-  //           //Transform problemdetails errors to field specific format
-  //           const fieldErrors = {};
-  //           Object.keys(problemData.errors).forEach(key => {
-  //             // Map backend names to frontend field names
-  //             const fieldMap = {
-  //               'StartTime': 'startTime',
-  //               'EndTime': 'endTime',
-  //               'Room': 'roomName',
-  //               'BookingDate': 'date',
-  //               'BookedBy': 'bookedBy'
-  //             };
-
-  //             const frontendField = fieldMap[key] ||key.toLowerCase();
-  //             fieldErrors[frontendField] = problemData.errors[key].join(',');
-  //           });
-
-  //           setFormErrors(fieldErrors);
-  //           throw{
-  //             message: problemData.title || 'Validation error',
-  //             errors: fieldErrors
-  //           };
-  //         }
-  //       }
-
-  //       //Handle other errors
-  //       if (apiError.response) {
-  //         const status = apiError.response.status;
-  //         const responseData = apiError.response.data;
-
-  //         if (status === 422){
-  //           throw new Error(responseData?.detail || responseData?.title || 'Invalid booking data');
-  //         }
-
-  //         throw new Error(`Server error (${status}): ${responseData?.message || 'Something went wrong'}`);
-  //       }
-  //     }
-
-  //     console.warn('API create failed, using local creation:', apiError);
-        
-  //       // Fallback: create locally
-  //     createdBooking = {
-  //       id: Date.now(),
-  //       ...newBooking,
-  //       status: 'Confirmed'
-  //     };
-      
-      
-  //     setBookings(prev => [...prev, createdBooking]);
-  //     return {success: true, data: createdBooking, fallback:true};
-      
-  //   } catch (err) {
-
-  //     console.error('Failed to add booking:', err);
-      
-  //     // Handle structured error with field errors
-  //     if (err.errors) {
-  //       setFormErrors(err.errors);
-  //       setError(err.message);
-  //     } else {
-  //       setError(err.message || 'Failed to add booking');
-  //     }
-
-  //     return { success: false, error: err};
-  //   }
-  // };
-
-  // Add new booking
   const addBooking = async (newBooking) => {
       try {
           setError(null);
@@ -242,7 +128,7 @@ export function useBookings() {
           try {
               createdBooking = await bookingService.createBooking({
                   ...newBooking,
-                  status: 'Confirmed'
+                  status: 'Booked'
               });
 
               // Optimistic update: update local state after success from API
@@ -330,7 +216,7 @@ export function useBookings() {
               createdBooking = {
                   id: Date.now(),
                   ...newBooking,
-                  status: 'Confirmed'
+                  status: 'Booked'
               };
 
               setBookings(prev => [...prev, createdBooking]);

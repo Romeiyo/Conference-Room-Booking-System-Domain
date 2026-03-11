@@ -53,7 +53,7 @@ public class Booking
     public DateTime GetEndDateTime() => BookingDate.ToDateTime(EndTime);
     public void ConfirmBooking()
     {
-        Status = BookingStatus.Confirmed;
+        Status = BookingStatus.Booked;
     }
 
     public void CancelBooking()

@@ -39,19 +39,19 @@ namespace ConferenceRoomBookingSystem
             {
                 new Booking(rooms[0], 1, "Admin",new DateOnly(2026, 02, 20), new TimeOnly(9, 0), new TimeOnly(10, 0))
                 {
-                    Id = 1,
+                    //Id = 1,
                     CreatedAt = new DateTime(2026, 01, 20, 12, 0, 0, DateTimeKind.Utc)
                 },
 
                 new Booking(rooms[0], 2, "Employee1", new DateOnly(2026, 02, 10), new TimeOnly(9, 0), new TimeOnly(10, 0))
                 {
-                    Id = 2,
+                    //Id = 2,
                     CreatedAt = new DateTime(2026, 01, 15, 12, 0, 0, DateTimeKind.Utc)
                 },
 
                 new Booking(rooms[1], 3, "Employee2", new DateOnly(2026, 02, 11), new TimeOnly(14, 0), new TimeOnly(15, 30))
                 {
-                    Id = 3,
+                    //Id = 3,
                     Status = BookingStatus.Cancelled,
                     CreatedAt = new DateTime(2026, 01, 20, 9, 30, 0, DateTimeKind.Utc),
                     CancelledAt = new DateTime(2026, 01, 25, 10, 0, 0, DateTimeKind.Utc)
@@ -59,13 +59,13 @@ namespace ConferenceRoomBookingSystem
 
                 new Booking(rooms[1], 4,  "Facilitator", new DateOnly(2026, 02, 09), new TimeOnly(9, 0), new TimeOnly(10, 0))
                 {
-                    Id = 4,
+                    //Id = 4,
                     CreatedAt = new DateTime(2026, 01, 16, 12, 0, 0, DateTimeKind.Utc)
                 },
 
                 new Booking(rooms[2], 5, "Receptionist", new DateOnly(2026, 02, 10), new TimeOnly(9, 0), new TimeOnly(10, 0))
                 {
-                    Id = 5,
+                    //Id = 5,
                     CreatedAt = new DateTime(2026, 01, 15, 12, 0, 0, DateTimeKind.Utc)
                 },
             };

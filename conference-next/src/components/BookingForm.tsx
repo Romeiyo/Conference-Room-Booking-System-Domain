@@ -57,7 +57,7 @@ export default function BookingForm({ onAddBooking, formErrors = {}, clearFormEr
             bookedBy
         });
 
-        if (!roomName || !date || !startTime || !endTime || !location || !bookedBy) {
+        if (!roomName || !date || !startTime || !endTime || !location ) {
             setSubmitError("Please fill in all fields");
             return;
         }
@@ -219,24 +219,6 @@ export default function BookingForm({ onAddBooking, formErrors = {}, clearFormEr
                         <option value="Cape Town">Cape Town</option>
                     </select>
                     {getFieldError('location')}
-                </div>
-            </div>
-
-            <div className="form-row">
-                <label>Booked By:</label>
-                <div className="field-container">
-                    <input
-                        id="bookedBy"
-                        type="text"
-                        value={bookedBy}
-                        onChange={(e) => setBookedBy(e.target.value)}
-                        placeholder="Enter your name"
-                        required
-                        disabled={isSubmitting}
-                        className={formErrors.bookedBy || formErrors.BookedBy ? 'error' : ''}
-                    />
-                    {getFieldError('bookedBy')}
-                    {getFieldError('BookedBy')}
                 </div>
             </div>
 

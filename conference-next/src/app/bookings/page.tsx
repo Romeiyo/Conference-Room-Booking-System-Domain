@@ -35,7 +35,7 @@ function BookingsContent() {
         <div className="container">
             <div className="header-section">
                 <h1>Conference Room Bookings</h1>
-                {user && <p>Welcome, {user.username}!</p>}
+                {/* {user && <p>Welcome, {user.username}!</p>} */}
                 <div className="header-actions">
                     <Link href="/dashboard" className="btn btn-primary">
                         + New Booking

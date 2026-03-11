@@ -32,9 +32,9 @@ function DashboardContent() {
         <div className="container">
             <div className="header-section">
                 <h1>Book a Conference Room</h1>
-                {user && <p>Welcome, {user.username}!</p>}
+                {/* {user && <p>Welcome, {user.username}!</p>} */}
                 <Link href="/bookings" className="btn btn-secondary">
-                    ← Back to Bookings
+                    ...My Bookings
                 </Link>
             </div>
 

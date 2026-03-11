@@ -146,72 +146,6 @@ namespace ConferenceRoomBookingSystem
             
         }
 
-        // private async Task SeedBookingsAsync(BookingsDbContext context)
-        // {
-        //     var rooms = await context.ConferenceRooms.ToListAsync();
-
-        //     if (!rooms.Any())
-        //     {
-        //         _logger.LogWarning("No rooms found in database. Skipping booking seeding.");
-        //         await SeedRoomsAsync(context);
-        //         rooms = await context.ConferenceRooms.ToListAsync();
-        //     }
-
-        //     var seedData = new SeedData();
-        //     var bookings = seedData.SeedBookings();
-
-        //     int newBookingsCount = 0;
-        //     int updatedBookingsCount = 0;
-
-        //     foreach (var seedBooking in bookings)
-        //     {
-        //         var existingBooking = await context.Bookings.FindAsync(seedBooking.Id);
-
-        //         if (existingBooking == null)
-        //         {
-        //             var room = rooms.FirstOrDefault(r => r.Id == seedBooking.RoomId);
-        //             if (room == null)
-        //             {
-        //                 _logger.LogWarning("Room with ID {RoomId} not found for booking {BookingId}. Skipping this booking.", 
-        //                     seedBooking.RoomId, seedBooking.Id);
-        //                 continue;
-        //             }
-
-        //             context.Bookings.Add(seedBooking);
-        //             newBookingsCount++;
-
-        //             _logger.LogInformation("Added new booking with ID {BookingId} for room {RoomName}", 
-        //                 seedBooking.Id, room.Name);
-        //         }
-        //         else
-        //         {
-        //             existingBooking.StartTime = seedBooking.StartTime;
-        //             existingBooking.EndTime = seedBooking.EndTime;
-        //             existingBooking.UserId = seedBooking.UserId;
-        //             existingBooking.RoomId = seedBooking.RoomId;
-        //             existingBooking.Status = seedBooking.Status;
-        //             existingBooking.Capacity = seedBooking.Capacity;
-        //             existingBooking.CreatedAt = seedBooking.CreatedAt;
-        //             existingBooking.CancelledAt = seedBooking.CancelledAt;
-
-        //             updatedBookingsCount++;
-
-        //             _logger.LogInformation("Updated existing booking with ID {BookingId}", 
-        //                 existingBooking.Id);
-        //         }
-        //     }
-
-        //     if (newBookingsCount > 0 || updatedBookingsCount > 0)
-        //     {
-        //         await context.SaveChangesAsync();
-        //         _logger.LogInformation("Saved {NewCount} new bookings and updated {UpdatedCount} existing bookings to database", 
-        //             newBookingsCount, updatedBookingsCount);
-        //     }
-        //     else
-        //     {
-        //         _logger.LogInformation("No new bookings to add or update. All bookings are up to date.");
-        //     }
-        // }
         private async Task SeedBookingsAsync(BookingsDbContext context)
         {
             // Get rooms from database (already tracked)
@@ -226,13 +160,35 @@ namespace ConferenceRoomBookingSystem
                 booking.Room = null; // Detach the room object
             }
             
-            // Get existing booking IDs
-            var existingBookingIds = await context.Bookings
-                .Select(b => b.Id)
+            // // Get existing booking IDs
+            // var existingBookingIds = await context.Bookings
+            //     .Select(b => b.Id)
+            //     .ToListAsync();
+            
+            // var newBookings = bookings
+            //     .Where(b => !existingBookingIds.Contains(b.Id))
+            //     .ToList();
+
+            // Check for existing bookings by business key (not ID!)
+            var existingBookings = await context.Bookings
+                .Select(b => new { 
+                    b.RoomId, 
+                    b.BookingDate, 
+                    b.StartTime, 
+                    b.EndTime,
+                    b.BookedBy 
+                })
                 .ToListAsync();
             
+            // Filter out bookings that already exist based on their properties
             var newBookings = bookings
-                .Where(b => !existingBookingIds.Contains(b.Id))
+                .Where(b => !existingBookings.Any(existing => 
+                    existing.RoomId == b.RoomId &&
+                    existing.BookingDate == b.BookingDate &&
+                    existing.StartTime == b.StartTime &&
+                    existing.EndTime == b.EndTime &&
+                    existing.BookedBy == b.BookedBy
+                ))
                 .ToList();
             
             if (newBookings.Any())

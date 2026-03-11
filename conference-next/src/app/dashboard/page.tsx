@@ -1,27 +1,27 @@
 "use client";
 
-import { useBookings } from '@/hooks/useBookings';
-import { useAuth } from '@/hooks/useAuth';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/context/AuthContext';
 import BookingForm from '@/components/BookingForm';
-import Link from 'next/link';
+import { useBookings } from '@/hooks/useBookings';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import '@/app/globals.css';
 
-export default function NewBookingPage() {
+function DashboardContent() {
     const router = useRouter();
+    const { user } = useAuth();
     const {
         formErrors,
         addBooking,
         clearFormErrors
     } = useBookings();
-    
-    const { user } = useAuth();
 
     const handleAddBooking = async (bookingData: any) => {
         try {
             await addBooking(bookingData);
             alert('Booking created successfully!');
-            router.push('/bookings'); 
+            router.push('/bookings');
         } catch (error) {
             console.error('Failed to create booking:', error);
             alert('Failed to create booking. Please try again.');
@@ -46,5 +46,13 @@ export default function NewBookingPage() {
                 />
             </div>
         </div>
+    );
+}
+
+export default function DashboardPage() {
+    return (
+        <ProtectedRoute>
+            <DashboardContent />
+        </ProtectedRoute>
     );
 }

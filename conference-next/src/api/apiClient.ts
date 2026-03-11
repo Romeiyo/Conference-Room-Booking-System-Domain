@@ -42,10 +42,13 @@ apiClient.interceptors.response.use(
             console.error('Unauthorized access - redirecting to login');
             
             if (typeof window !== 'undefined') {
+                //Removing token
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
                 
                 window.dispatchEvent(new Event('unauthorized'));
+
+                console.log('Session expired. Please login again.');
             }
         }
 

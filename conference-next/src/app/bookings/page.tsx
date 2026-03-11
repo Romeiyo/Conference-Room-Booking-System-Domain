@@ -1,13 +1,14 @@
 "use client";
 
+import ProtectedRoute from '@/components/ProtectedRoute';
 import { useBookings } from '@/hooks/useBookings';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import BookingList from '@/components/BookingList';
 import Filter from '@/components/Filter';
 import Link from 'next/link';
 import '@/app/globals.css';
 
-export default function BookingsPage() {
+function BookingsContent() {
     const {
         filteredBookings,
         isLoading: bookingsLoading,
@@ -78,5 +79,13 @@ export default function BookingsPage() {
                 />
             )}
         </div>
+    );
+}
+
+export default function BookingsPage() {
+    return (
+        <ProtectedRoute>
+            <BookingsContent />
+        </ProtectedRoute>
     );
 }

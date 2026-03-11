@@ -1,8 +1,8 @@
-// src/app/layout.tsx
 import type { Metadata } from 'next'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import './globals.css'
+import { AuthProvider } from '@/context/AuthContext'
 
 export const metadata: Metadata = {
   title: 'Conference Room Booking System',
@@ -17,13 +17,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="app-container">
-          <Navbar />
-          <main className="main-content">
-            {children}
-          </main>
-          <Footer />
-        </div>
+        <AuthProvider>
+          <div className="app-container">
+            <Navbar />
+            <main className="main-content">
+              {children}
+            </main>
+            <Footer />
+          </div>
+        </AuthProvider>
       </body>
     </html>
   )

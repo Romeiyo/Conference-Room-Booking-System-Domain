@@ -51,7 +51,7 @@ export const bookingService = {
            if (response && typeof response === 'object') {
                 // If it has a 'data' property that is an array, extract it
                 if ('data' in response && Array.isArray(response.data)) {
-                    console.log(`✅ Received ${response.data.length} bookings from API`);
+                    console.log(`Received ${response.data.length} bookings from API`);
                     return response.data as Booking[];
                 }
                 // If the response itself is an array, return it directly
@@ -97,7 +97,7 @@ export const bookingService = {
                 endTime: formatTimeWithSeconds(bookingData.endTime)
             };
             
-            console.log('📤 Sending to API:', {
+            console.log('Sending to API:', {
                 url: '/booking',
                 method: 'POST',
                 data: apiBookingData,

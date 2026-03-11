@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import '@/app/globals.css';
 
@@ -9,7 +9,7 @@ export default function LoginForm() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [formError, setFormError] = useState('');
-    const { login, isLoading, error } = useAuth();
+    const { login, isLoading, error } = useAuth(); 
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -26,6 +26,7 @@ export default function LoginForm() {
             router.push('/dashboard'); // Navigate after login
         } catch (err) {
             console.error('Login failed:', err);
+            // Error is already set in context
         }
     };
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { bookingService, fetchAllBookings } from '@/services/bookingService';
 import axios from 'axios';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface Booking {
     id: number;
@@ -26,7 +27,59 @@ export function useBookings() {
     const [categoryFilter, setCategoryFilter] = useState('All');
     const [retryCount, setRetryCount] = useState(0);
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+    const [searchInput, setSearchInput] = useState(''); 
 
+    const debouncedSearchTerm = useDebounce(searchInput, 400);
+
+    // These only recalculate when bookings array changes
+    const bookingStats = useMemo(() => {
+        console.log('Calculating booking statistics...');
+        return {
+            total: bookings.length,
+            confirmed: bookings.filter(b => b.status === 'Confirmed').length,
+            cancelled: bookings.filter(b => b.status === 'Cancelled').length,
+            pending: bookings.filter(b => b.status === 'Pending' || !b.status).length,
+            uniqueLocations: [...new Set(bookings.map(b => b.location).filter(Boolean))] as string[]
+        };
+    }, [bookings]);
+
+    const locations = useMemo(() => {
+        return ['All', ...bookingStats.uniqueLocations];
+    }, [bookingStats.uniqueLocations]); //Only recalculates when dropdown changes
+
+    // This prevents re-filtering on every render
+    const getFilteredBookings = useMemo(() => {
+        console.log('🔍 Filtering bookings...', { 
+            searchTerm: debouncedSearchTerm, // This is the debounced value
+            categoryFilter 
+        });
+
+        let result = [...bookings];
+        
+        // Apply category filter
+        if (categoryFilter !== 'All') {
+            result = result.filter(booking => booking.location === categoryFilter);
+        }
+        
+        // Apply search filter (if searchTerm exists)
+        if (debouncedSearchTerm.trim()) {
+            const term = debouncedSearchTerm.toLowerCase();
+            result = result.filter(booking => 
+                booking.roomName?.toLowerCase().includes(term) ||
+                booking.room?.name?.toLowerCase().includes(term) ||
+                booking.bookedBy?.toLowerCase().includes(term)
+            );
+        }
+        
+        return result;
+    }, [bookings, categoryFilter, debouncedSearchTerm]);
+
+    // Update filteredBookings when getFilteredBookings changes
+    useEffect(() => {
+        setFilteredBookings(getFilteredBookings);
+    }, [getFilteredBookings]);
+
+    // These prevent child components from re-rendering unnecessarily
     const fetchBookings = useCallback(async (signal?: AbortSignal) => {
         try {
             setIsLoading(true);
@@ -87,6 +140,29 @@ export function useBookings() {
         }
     }, []);
 
+    const selectBooking = useCallback((bookingId: number) => {
+        setSelectedBookingId(bookingId);
+    }, []); 
+
+    const changeFilter = useCallback((filterValue: string) => {
+        setCategoryFilter(filterValue);
+    }, []);
+
+    const setSearch = useCallback((term: string) => {
+        console.log('Search input changed:', term); // Wendy's Keylogger
+
+        setSearchInput(term);
+    }, []); 
+
+    const retryFetch = useCallback(() => {
+        setRetryCount(prev => prev + 1);
+    }, []);
+
+    const clearFormErrors = useCallback(() => {
+        setFormErrors({});
+    }, []);
+
+    // Fetch effect
     useEffect(() => {
         const controller = new AbortController();
         const { signal } = controller;
@@ -97,24 +173,15 @@ export function useBookings() {
         };
     }, [fetchBookings, retryCount]);
 
-    useEffect(() => {
-        if (categoryFilter === 'All') {
-            setFilteredBookings(bookings);
-        } else {
-            const filtered = bookings.filter(
-                booking => booking.location === categoryFilter
-            );
-            setFilteredBookings(filtered);
-        }
-    }, [categoryFilter, bookings]);
-
+    // Save to localStorage
     useEffect(() => {
         if (bookings.length > 0) {
             localStorage.setItem('bookings', JSON.stringify(bookings));
         }
     }, [bookings]);
 
-    const addBooking = async (newBooking: any) => {
+    // Add booking function
+    const addBooking = useCallback(async (newBooking: any) => {
         try {
             setError(null);
             setFormErrors({});
@@ -155,11 +222,7 @@ export function useBookings() {
                 if (apiError.response && apiError.response.status === 400) {
                     const responseData = apiError.response.data;
 
-                    console.log('FULL ERROR RESPONSE:', apiError.response);
-                    console.log('ERROR DATA:', responseData);
-
                     if (responseData && responseData.errors) {
-                        console.log('VALIDATION ERRORS:', responseData.errors);
                         const fieldErrors: Record<string, string> = {};
                         Object.keys(responseData.errors).forEach(key => {
                             const fieldMap: Record<string, string> = {
@@ -180,17 +243,6 @@ export function useBookings() {
                             errors: fieldErrors
                         };
                     }
-                }
-
-                if (apiError.response) {
-                    const status = apiError.response.status;
-                    const responseData = apiError.response.data;
-
-                    if (status === 422) {
-                        throw new Error(responseData?.detail || responseData?.title || 'Invalid booking data');
-                    }
-
-                    throw new Error(`Server error (${status}): ${responseData?.message || 'Something went wrong'}`);
                 }
 
                 console.warn('API create failed, using local creation:', apiError);
@@ -217,13 +269,9 @@ export function useBookings() {
 
             return { success: false, error: err };
         }
-    };
+    }, []);
 
-    const selectBooking = (bookingId: number) => {
-        setSelectedBookingId(bookingId);
-    };
-
-    const cancelSelectedBooking = async () => {
+    const cancelSelectedBooking = useCallback(async () => {
         if (!selectedBookingId) {
             alert("Please select a booking to cancel");
             return false;
@@ -276,9 +324,9 @@ export function useBookings() {
             }
         }
         return false;
-    };
+    }, [selectedBookingId]);
 
-    const cancelBooking = async (bookingId: number) => {
+    const cancelBooking = useCallback(async (bookingId: number) => {
         if (!bookingId) return false;
 
         if (window.confirm('Are you sure you want to cancel this booking?')) {
@@ -332,30 +380,11 @@ export function useBookings() {
             }
         }
         return false;
-    };
+    }, [selectedBookingId]);
 
-    const changeFilter = (filterValue: string) => {
-        setCategoryFilter(filterValue);
-    };
-
-    const retryFetch = () => {
-        setRetryCount(prev => prev + 1);
-    };
-
-    const refreshBookings = () => {
+    const refreshBookings = useCallback(() => {
         fetchBookings();
-    };
-
-    const clearFormErrors = () => {
-        setFormErrors({});
-    };
-
-    const locations = ['All', ...new Set(bookings.map(b => b.location).filter(Boolean))] as string[];
-
-    const totalBookings = bookings.length;
-    const confirmedBookings = bookings.filter(b => b.status === 'Confirmed').length;
-    const cancelledBookings = bookings.filter(b => b.status === 'Cancelled').length;
-    const pendingBookings = bookings.filter(b => b.status === 'Pending' || !b.status).length;
+    }, [fetchBookings]);
 
     return {
         bookings,
@@ -367,10 +396,10 @@ export function useBookings() {
         categoryFilter,
         locations,
         
-        totalBookings,
-        confirmedBookings,
-        cancelledBookings,
-        pendingBookings,
+        totalBookings: bookingStats.total,
+        confirmedBookings: bookingStats.confirmed,
+        cancelledBookings: bookingStats.cancelled,
+        pendingBookings: bookingStats.pending,
         
         addBooking,
         selectBooking,
@@ -380,6 +409,10 @@ export function useBookings() {
         retryFetch,
         refreshBookings,
         clearFormErrors,
+        
+        searchTerm: searchInput,
+        debouncedSearchTerm,
+        setSearch,
         
         hasBookings: bookings.length > 0,
         hasFilteredBookings: filteredBookings.length > 0,
